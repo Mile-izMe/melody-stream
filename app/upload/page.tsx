@@ -1,8 +1,10 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/src/stores/use-auth";
+import { requestSongPresignUrl } from "@/src/graphql/mutations/song-presign-url";
+import { requestSongSaveMetadata } from "@/src/graphql/mutations/song-save-metadata";
 import {
   Upload as UploadIcon,
   Music,
@@ -24,6 +26,12 @@ export default function UploadPage() {
   const [success, setSuccess] = useState(false);
   const [error, setError] = useState("");
 
+  useEffect(() => {
+    if (!user) {
+      router.push("/login");
+    }
+  }, [user, router]);
+
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
       const selectedFile = e.target.files[0];
@@ -44,28 +52,45 @@ export default function UploadPage() {
     setUploading(true);
     setError("");
 
-    const formData = new FormData();
-    formData.append("audio", file);
-    formData.append("title", title);
-    formData.append("artist", artist);
-
     try {
-      const res = await fetch("/api/upload", {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${user.token}`,
+      const presignResponse = await requestSongPresignUrl(
+        {
+          contentType: file.type,
+          fileName: file.name,
         },
-        body: formData,
+        user.token,
+      );
+
+      const presignData = presignResponse.songPresignUrl.data;
+
+      const uploadResponse = await fetch(presignData.url, {
+        method: "PUT",
+        headers: {
+          "Content-Type": file.type,
+        },
+        body: file,
       });
 
-      if (!res.ok) {
-        throw new Error("Không thể tải bài hát lên");
+      if (!uploadResponse.ok) {
+        throw new Error("Không thể tải file lên S3");
       }
+
+      await requestSongSaveMetadata(
+        {
+          userId: user.id,
+          key: presignData.key,
+          title,
+          artist,
+        },
+        user.token,
+      );
 
       setSuccess(true);
       setTimeout(() => router.push("/"), 2000);
-    } catch (err: any) {
-      setError(err.message);
+    } catch (err: unknown) {
+      setError(
+        err instanceof Error ? err.message : "Không thể tải bài hát lên",
+      );
     } finally {
       setUploading(false);
     }
@@ -82,7 +107,7 @@ export default function UploadPage() {
 
       <form onSubmit={handleUpload} className="space-y-8">
         <div className="bg-white/5 backdrop-blur-xl p-10 rounded-3xl border border-white/10 shadow-2xl relative overflow-hidden">
-          <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-blue-500 to-purple-500"></div>
+          <div className="absolute top-0 left-0 w-full h-1 bg-linear-to-r from-blue-500 to-purple-500"></div>
 
           <div className="space-y-8">
             {/* Drop Zone */}
@@ -202,12 +227,12 @@ export default function UploadPage() {
             initial={{ opacity: 0, y: 50 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0 }}
-            className="fixed bottom-32 left-1/2 -translate-x-1/2 bg-white text-black font-bold px-8 py-4 rounded-3xl shadow-2xl border border-white/20 flex items-center space-x-4 z-[60]"
+            className="fixed bottom-32 left-1/2 -translate-x-1/2 bg-white text-black font-bold px-8 py-4 rounded-3xl shadow-2xl border border-white/20 flex items-center space-x-4 z-60"
           >
             <div className="w-8 h-8 bg-black rounded-full flex items-center justify-center text-white">
               <CheckCircle size={18} />
             </div>
-            <span>Track Published! Redirecting...</span>
+            <span>Uploaded. Processing HLS playlist... Redirecting...</span>
           </motion.div>
         )}
         {error && (
@@ -215,7 +240,7 @@ export default function UploadPage() {
             initial={{ opacity: 0, y: 50 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0 }}
-            className="fixed bottom-32 left-1/2 -translate-x-1/2 bg-red-500 text-white font-bold px-8 py-4 rounded-3xl shadow-2xl flex items-center space-x-4 z-[60]"
+            className="fixed bottom-32 left-1/2 -translate-x-1/2 bg-red-500 text-white font-bold px-8 py-4 rounded-3xl shadow-2xl flex items-center space-x-4 z-60"
           >
             <AlertCircle size={24} />
             <span>{error}</span>

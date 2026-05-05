@@ -1,6 +1,7 @@
 "use client";
 
 import { useAuth } from "@/src/stores/use-auth";
+import { useTheme } from "next-themes";
 import {
   Home as HomeIcon,
   LogIn,
@@ -16,17 +17,16 @@ import React from "react";
 
 interface LayoutProps {
   children: React.ReactNode;
-  toggleTheme: () => void;
-  isDarkMode: boolean;
 }
 
-export const Layout: React.FC<LayoutProps> = ({
-  children,
-  toggleTheme,
-  isDarkMode,
-}) => {
+export const Layout: React.FC<LayoutProps> = ({ children }) => {
   const { user, logout } = useAuth();
+  const { theme, setTheme } = useTheme();
   const pathname = usePathname();
+  const isDarkMode = (theme ?? "dark") === "dark";
+
+  const handleSetDark = () => setTheme("dark");
+  const handleSetLight = () => setTheme("light");
 
   return (
     <div className="flex flex-col h-screen relative z-10">
@@ -34,7 +34,7 @@ export const Layout: React.FC<LayoutProps> = ({
         {/* Sidebar */}
         <aside className="w-64 bg-white/5 backdrop-blur-xl border-r border-white/10 hidden md:flex flex-col p-6 space-y-8 z-20">
           <Link href="/" className="flex items-center space-x-3">
-            <div className="w-8 h-8 bg-gradient-to-tr from-purple-500 to-blue-500 rounded-lg flex items-center justify-center shadow-lg">
+            <div className="w-8 h-8 bg-linear-to-tr from-purple-500 to-blue-500 rounded-lg flex items-center justify-center shadow-lg">
               <Play size={18} fill="white" className="text-white ml-0.5" />
             </div>
             <span className="text-xl font-bold tracking-tight">
@@ -68,7 +68,7 @@ export const Layout: React.FC<LayoutProps> = ({
             {user ? (
               <div className="bg-white/5 rounded-2xl p-4 border border-white/10 space-y-4">
                 <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center font-bold text-white uppercase">
+                  <div className="w-10 h-10 rounded-full bg-linear-to-br from-indigo-500 to-purple-600 flex items-center justify-center font-bold text-white uppercase">
                     {user.username.substring(0, 2)}
                   </div>
                   <div className="flex-1 overflow-hidden">
@@ -99,7 +99,7 @@ export const Layout: React.FC<LayoutProps> = ({
             )}
 
             <button
-              onClick={toggleTheme}
+              onClick={handleSetDark}
               className="mt-4 w-full flex items-center space-x-3 px-4 py-3 rounded-xl text-gray-400 hover:bg-white/5 transition-colors"
             >
               {isDarkMode ? <Sun size={20} /> : <Moon size={20} />}
@@ -113,7 +113,7 @@ export const Layout: React.FC<LayoutProps> = ({
           {/* Header Mobile & Desktop Gradient Overlay */}
           <div className="sticky top-0 h-20 flex items-center justify-between px-8 bg-white/5 backdrop-blur-md z-30 border-b border-white/5">
             <div className="flex md:hidden items-center space-x-2">
-              <div className="w-6 h-6 bg-gradient-to-tr from-purple-500 to-blue-500 rounded flex items-center justify-center">
+              <div className="w-6 h-6 bg-linear-to-tr from-purple-500 to-blue-500 rounded flex items-center justify-center">
                 <Play size={12} fill="white" className="text-white ml-0.5" />
               </div>
               <span className="font-bold">MelodyStream</span>
@@ -126,13 +126,13 @@ export const Layout: React.FC<LayoutProps> = ({
             <div className="flex items-center gap-4">
               <div className="flex bg-black/30 rounded-full p-1 border border-white/10">
                 <button
-                  onClick={() => !isDarkMode && toggleTheme()}
+                  onClick={handleSetDark}
                   className={`px-4 py-1 rounded-full text-xs transition-all ${isDarkMode ? "bg-white text-black font-semibold" : "text-gray-400"}`}
                 >
                   Dark
                 </button>
                 <button
-                  onClick={() => isDarkMode && toggleTheme()}
+                  onClick={handleSetLight}
                   className={`px-4 py-1 rounded-full text-xs transition-all ${!isDarkMode ? "bg-white text-black font-semibold" : "text-gray-400"}`}
                 >
                   Light
@@ -149,7 +149,7 @@ export const Layout: React.FC<LayoutProps> = ({
             </div>
           </div>
 
-          <div className="p-8 pb-32">{children}</div>
+          <div className="w-full h-full">{children}</div>
         </main>
       </div>
     </div>

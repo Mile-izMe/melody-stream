@@ -3,10 +3,8 @@
 import React from "react";
 import { usePathname } from "next/navigation";
 import { Layout } from "./sidebar";
-import { useTheme } from "@/src/providers/theme-provider";
 
 export function LayoutWrapper({ children }: { children: React.ReactNode }) {
-  const { toggleTheme, isDarkMode } = useTheme();
   const pathname = usePathname();
 
   // Don't show layout for login page
@@ -14,9 +12,5 @@ export function LayoutWrapper({ children }: { children: React.ReactNode }) {
     return <>{children}</>;
   }
 
-  return (
-    <Layout toggleTheme={toggleTheme} isDarkMode={isDarkMode}>
-      {children}
-    </Layout>
-  );
+  return <Layout>{children}</Layout>;
 }

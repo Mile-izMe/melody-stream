@@ -1,38 +1,18 @@
 "use client";
 
 import React, { useEffect, useRef } from "react";
-import Hls from "hls.js";
+import { attachHlsStream, resolveStreamUrl } from "@/src/services/hls";
 
-export default function HlsPlayer({
-  src,
-  poster,
-}: {
-  src: string;
-  poster?: string;
-}) {
-  const ref = useRef<HTMLVideoElement | null>(null);
+export default function HlsPlayer({ src }: { src: string }) {
+  const ref = useRef<HTMLAudioElement | null>(null);
+  const resolvedSrc = resolveStreamUrl(src);
 
   useEffect(() => {
-    const video = ref.current;
-    if (!video) return;
+    const audio = ref.current;
+    if (!audio) return;
 
-    if (Hls.isSupported()) {
-      const hls = new Hls();
-      hls.loadSource(src);
-      hls.attachMedia(video);
-      return () => hls.destroy();
-    }
+    return attachHlsStream(audio, resolvedSrc);
+  }, [resolvedSrc]);
 
-    // fallback: set native src
-    video.src = src;
-  }, [src]);
-
-  return (
-    <video
-      ref={ref}
-      controls
-      className="w-full max-w-2xl rounded"
-      poster={poster}
-    />
-  );
+  return <audio ref={ref} controls preload="none" className="w-full" />;
 }

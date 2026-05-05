@@ -1,6 +1,11 @@
 "use client";
 
-import React, { createContext, useContext, useState, useEffect } from "react";
+import React, { createContext, useContext, useMemo } from "react";
+import {
+  ThemeProvider as NextThemesProvider,
+  useTheme as useNextTheme,
+} from "next-themes";
+
 type Theme = "light" | "dark";
 
 interface ThemeContextType {
@@ -11,38 +16,35 @@ interface ThemeContextType {
 
 const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 
-export function ThemeProvider({ children }: { children: React.ReactNode }) {
-  const [theme, setTheme] = useState<Theme>(() => {
-    if (typeof window === "undefined") return "dark";
+function ThemeBridge({ children }: { children: React.ReactNode }) {
+  const { theme, setTheme, resolvedTheme } = useNextTheme();
 
-    const stored = localStorage.getItem("theme") as Theme | null;
-    const preferred = window.matchMedia("(prefers-color-scheme: dark)").matches
-      ? "dark"
-      : "light";
+  const activeTheme = (resolvedTheme || theme || "dark") as Theme;
 
-    return stored || preferred;
-  });
-
-  useEffect(() => {
-    localStorage.setItem("theme", theme);
-    document.documentElement.classList.toggle("dark", theme === "dark");
-  }, [theme]);
-
-  const toggleTheme = () => {
-    setTheme((prev) => {
-      const newTheme = prev === "dark" ? "light" : "dark";
-      localStorage.setItem("theme", newTheme);
-      document.documentElement.classList.toggle("dark", newTheme === "dark");
-      return newTheme;
-    });
-  };
+  const value = useMemo(
+    () => ({
+      theme: activeTheme,
+      toggleTheme: () => setTheme(activeTheme === "dark" ? "light" : "dark"),
+      isDarkMode: activeTheme === "dark",
+    }),
+    [activeTheme, setTheme],
+  );
 
   return (
-    <ThemeContext.Provider
-      value={{ theme, toggleTheme, isDarkMode: theme === "dark" }}
+    <ThemeContext.Provider value={value}>{children}</ThemeContext.Provider>
+  );
+}
+
+export function ThemeProvider({ children }: { children: React.ReactNode }) {
+  return (
+    <NextThemesProvider
+      attribute="class"
+      defaultTheme="dark"
+      enableSystem
+      disableTransitionOnChange
     >
-      {children}
-    </ThemeContext.Provider>
+      <ThemeBridge>{children}</ThemeBridge>
+    </NextThemesProvider>
   );
 }
 

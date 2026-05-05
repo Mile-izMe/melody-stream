@@ -1,18 +1,18 @@
 "use client";
 
-import React from "react";
-import Link from "next/link";
-import { usePathname, useRouter } from "next/navigation";
+import { useAuth } from "@/src/stores/use-auth";
 import {
   Home as HomeIcon,
-  Upload as UploadIcon,
   LogIn,
   LogOut,
-  Sun,
   Moon,
   Play,
+  Sun,
+  Upload as UploadIcon,
 } from "lucide-react";
-import { useAuth } from "@/src/stores/use-auth";
+import Link from "next/link";
+import { usePathname } from "next/navigation";
+import React from "react";
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -27,7 +27,6 @@ export const Layout: React.FC<LayoutProps> = ({
 }) => {
   const { user, logout } = useAuth();
   const pathname = usePathname();
-  const router = useRouter();
 
   return (
     <div className="flex flex-col h-screen relative z-10">

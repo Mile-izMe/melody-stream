@@ -5,6 +5,12 @@ import { useRouter } from "next/navigation";
 import { useAuth } from "@/src/stores/use-auth";
 import { ArrowRight, User as UserIcon, Lock, X } from "lucide-react";
 import { motion } from "framer-motion";
+import {
+  decodeJwtPayload,
+  deriveUsernameFromEmail,
+  getOrCreateDeviceId,
+} from "@/src/libs/auth-session";
+import { requestLogin } from "@/src/features/graphql/mutations/auth";
 
 interface LoginModalProps {
   isOpen: boolean;
@@ -17,7 +23,7 @@ export function LoginModal({
   onClose,
   onSwitchToRegister,
 }: LoginModalProps) {
-  const [username, setUsername] = useState("");
+  const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -31,54 +37,41 @@ export function LoginModal({
     setError("");
 
     try {
-      // Fake login - store in localStorage
-      if (username && password) {
-        const userData = {
-          id: Date.now().toString(),
-          username,
-          email: `${username}@melody.local`,
-          token: Math.random().toString(36).substring(2),
-        };
-        localStorage.setItem("user", JSON.stringify(userData));
-        login(userData);
-        setUsername("");
-        setPassword("");
-        onClose();
-        router.push("/");
-      } else {
-        setError("Vui lòng nhập username và password");
+      const deviceId = getOrCreateDeviceId();
+      const response = await requestLogin({
+        email,
+        password,
+        deviceId,
+      });
+
+      const session = response.login.data;
+      if (!session) {
+        throw new Error(response.login.message || "Không thể đăng nhập");
       }
-    } catch (err: any) {
-      setError(err.message || "Đã có lỗi xảy ra");
+
+      const decoded = decodeJwtPayload(session.accessToken);
+      login({
+        id: decoded?.sub ?? email,
+        username: deriveUsernameFromEmail(email),
+        email,
+        token: session.accessToken,
+        refreshToken: session.refreshToken,
+        deviceId,
+      });
+
+      setEmail("");
+      setPassword("");
+      onClose();
+      router.push("/");
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : "Đã có lỗi xảy ra");
     } finally {
       setLoading(false);
     }
   };
 
-  const handleSocialLogin = async (provider: "google" | "facebook") => {
-    setLoading(true);
-    setError("");
-
-    try {
-      // Fake social login
-      const userData = {
-        id: Date.now().toString(),
-        username: `user_${provider}_${Date.now()}`,
-        email: `user@${provider}.local`,
-        provider,
-        token: Math.random().toString(36).substring(2),
-      };
-      localStorage.setItem("user", JSON.stringify(userData));
-      login(userData);
-      setUsername("");
-      setPassword("");
-      onClose();
-      router.push("/");
-    } catch (err: any) {
-      setError(err.message || "Đã có lỗi xảy ra");
-    } finally {
-      setLoading(false);
-    }
+  const handleSocialLogin = () => {
+    setError("Đăng nhập bằng mạng xã hội chưa được triển khai.");
   };
 
   if (!isOpen) return null;
@@ -91,7 +84,7 @@ export function LoginModal({
         exit={{ opacity: 0, scale: 0.9 }}
         className="w-full max-w-md max-h-[90vh] bg-white/5 backdrop-blur-xl rounded-3xl p-8 border border-white/10 shadow-2xl relative overflow-y-auto"
       >
-        <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-purple-500 to-blue-500"></div>
+        <div className="absolute top-0 left-0 w-full h-1 bg-linear-to-r from-purple-500 to-blue-500"></div>
 
         <button
           onClick={onClose}
@@ -105,7 +98,7 @@ export function LoginModal({
             Welcome Back
           </h1>
           <p className="text-sm text-gray-500 mt-2">
-            Enter your credentials to continue
+            Enter your email and password to continue
           </p>
         </div>
 
@@ -118,7 +111,7 @@ export function LoginModal({
         <form onSubmit={handleSubmit} className="space-y-6">
           <div className="space-y-2">
             <label className="text-xs font-bold uppercase tracking-widest text-gray-500 px-1">
-              Username
+              Email
             </label>
             <div className="relative">
               <UserIcon
@@ -126,11 +119,11 @@ export function LoginModal({
                 size={18}
               />
               <input
-                type="text"
-                value={username}
-                onChange={(e) => setUsername(e.target.value)}
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
                 className="w-full pl-12 pr-4 py-4 bg-white/5 border border-white/10 focus:border-purple-500 focus:bg-white/10 rounded-2xl outline-none transition-all placeholder:text-gray-600 text-white"
-                placeholder="Enter your username"
+                placeholder="Enter your email"
                 required
               />
             </div>
@@ -177,7 +170,8 @@ export function LoginModal({
           </p>
           <div className="flex gap-4">
             <button
-              onClick={() => handleSocialLogin("google")}
+              type="button"
+              onClick={handleSocialLogin}
               disabled={loading}
               className="flex-1 py-3 rounded-xl border border-white/10 hover:bg-white/5 transition-all disabled:opacity-50 flex items-center justify-center gap-2"
             >
@@ -202,7 +196,8 @@ export function LoginModal({
               <span className="text-sm">Google</span>
             </button>
             <button
-              onClick={() => handleSocialLogin("facebook")}
+              type="button"
+              onClick={handleSocialLogin}
               disabled={loading}
               className="flex-1 py-3 rounded-xl border border-white/10 hover:bg-white/5 transition-all disabled:opacity-50 flex items-center justify-center gap-2"
             >

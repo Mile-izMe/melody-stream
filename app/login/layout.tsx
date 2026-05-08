@@ -1,8 +1,8 @@
 "use client";
 
 import React from "react";
-import { ThemeProvider } from "@/src/providers/theme-provider";
 import { AuthProvider } from "@/src/providers/auth-provider";
+import { ThemeProvider } from "@/src/providers/theme-provider";
 import QueryProvider from "@/src/providers/query-provider";
 
 export default function LoginLayout({

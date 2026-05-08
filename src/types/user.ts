@@ -3,5 +3,7 @@ export interface User {
   username: string;
   email: string;
   token: string;
+  refreshToken?: string;
+  deviceId?: string;
   provider?: string;
 }

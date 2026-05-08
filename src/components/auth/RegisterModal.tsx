@@ -10,6 +10,7 @@ import {
   Check,
 } from "lucide-react";
 import { motion } from "framer-motion";
+import { requestRegister } from "@/src/features/graphql/mutations/auth";
 
 interface RegisterModalProps {
   isOpen: boolean;
@@ -65,53 +66,36 @@ export function RegisterModal({
     setLoading(true);
 
     try {
-      // Fake register - just show success
-      const userData = {
-        id: Date.now().toString(),
+      const response = await requestRegister({
         username,
         email,
-        token: Math.random().toString(36).substring(2),
-      };
-      // Don't login yet, just show success
+        password,
+      });
+
+      if (!response.register.data) {
+        throw new Error(response.register.message || "Không thể đăng ký");
+      }
+
       setSuccess(true);
 
-      // Show success message then redirect to login
       setTimeout(() => {
         setUsername("");
         setEmail("");
         setPassword("");
         setConfirmPassword("");
+        setSuccess(false);
         onClose();
         onSwitchToLogin();
       }, 1500);
-    } catch (err: any) {
-      setError(err.message || "Đã có lỗi xảy ra");
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : "Đã có lỗi xảy ra");
     } finally {
       setLoading(false);
     }
   };
 
-  const handleSocialRegister = async (provider: "google" | "facebook") => {
-    setLoading(true);
-    setError("");
-
-    try {
-      // Fake social register - show success then redirect to login
-      setSuccess(true);
-
-      setTimeout(() => {
-        setUsername("");
-        setEmail("");
-        setPassword("");
-        setConfirmPassword("");
-        onClose();
-        onSwitchToLogin();
-      }, 1500);
-    } catch (err: any) {
-      setError(err.message || "Đã có lỗi xảy ra");
-    } finally {
-      setLoading(false);
-    }
+  const handleSocialRegister = () => {
+    setError("Đăng ký bằng mạng xã hội chưa được triển khai.");
   };
 
   if (!isOpen) return null;
@@ -124,7 +108,7 @@ export function RegisterModal({
         exit={{ opacity: 0, scale: 0.9 }}
         className="w-full max-w-md max-h-[90vh] bg-white/5 backdrop-blur-xl rounded-3xl p-8 border border-white/10 shadow-2xl relative overflow-y-auto"
       >
-        <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-blue-500 to-purple-500"></div>
+        <div className="absolute top-0 left-0 w-full h-1 bg-linear-to-r from-blue-500 to-purple-500"></div>
 
         <button
           onClick={onClose}
@@ -271,7 +255,8 @@ export function RegisterModal({
           </p>
           <div className="flex gap-4">
             <button
-              onClick={() => handleSocialRegister("google")}
+              type="button"
+              onClick={handleSocialRegister}
               disabled={loading}
               className="flex-1 py-3 rounded-xl border border-white/10 hover:bg-white/5 transition-all disabled:opacity-50 flex items-center justify-center gap-2"
             >
@@ -296,7 +281,8 @@ export function RegisterModal({
               <span className="text-sm">Google</span>
             </button>
             <button
-              onClick={() => handleSocialRegister("facebook")}
+              type="button"
+              onClick={handleSocialRegister}
               disabled={loading}
               className="flex-1 py-3 rounded-xl border border-white/10 hover:bg-white/5 transition-all disabled:opacity-50 flex items-center justify-center gap-2"
             >

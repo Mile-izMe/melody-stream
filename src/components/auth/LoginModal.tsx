@@ -2,7 +2,7 @@
 
 import React, { useState } from "react";
 import { useRouter } from "next/navigation";
-import { useAuth } from "@/src/stores/use-auth";
+import { useAuth } from "@/src/stores/use-auth-store";
 import { ArrowRight, User as UserIcon, Lock, X } from "lucide-react";
 import { motion } from "framer-motion";
 import {

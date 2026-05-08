@@ -4,8 +4,6 @@ import { create } from "zustand";
 import { persist } from "zustand/middleware";
 import { User } from "@/src/types/user";
 
-export const AUTH_STORE_STORAGE_KEY = "melody-stream-auth-store";
-
 interface AuthState {
   user: User | null;
   accessToken: string | null;
@@ -13,15 +11,17 @@ interface AuthState {
   deviceId: string | null;
 
   setUser: (user: User | null) => void;
-  setTokens: (accessToken: string, refreshToken: string) => void;
-  setDeviceId: (deviceId: string) => void;
+  setTokens: (accessToken: string | null, refreshToken: string | null) => void;
+  setDeviceId: (deviceId: string | null) => void;
   setAuthData: (
     user: User | null,
-    accessToken: string,
-    refreshToken: string,
-    deviceId: string,
+    accessToken: string | null,
+    refreshToken: string | null,
+    deviceId: string | null,
   ) => void;
   clearSession: () => void;
+  login: (user: User) => void;
+  logout: () => void;
 }
 
 export const useAuthStore = create<AuthState>()(
@@ -42,6 +42,22 @@ export const useAuthStore = create<AuthState>()(
       setAuthData: (user, accessToken, refreshToken, deviceId) =>
         set({ user, accessToken, refreshToken, deviceId }),
 
+      login: (user) =>
+        set({
+          user,
+          accessToken: user?.token ?? null,
+          refreshToken: user?.refreshToken ?? null,
+          deviceId: user?.deviceId ?? null,
+        }),
+
+      logout: () =>
+        set({
+          user: null,
+          accessToken: null,
+          refreshToken: null,
+          deviceId: null,
+        }),
+
       clearSession: () =>
         set({
           user: null,
@@ -51,8 +67,16 @@ export const useAuthStore = create<AuthState>()(
         }),
     }),
     {
-      name: AUTH_STORE_STORAGE_KEY,
-      version: 1,
+      name: "melody-stream-auth-store",
+      partialize: (state) => ({
+        user: state.user,
+        accessToken: state.accessToken,
+        refreshToken: state.refreshToken,
+        deviceId: state.deviceId,
+      }),
     },
   ),
 );
+
+// Backwards-compatible alias used across the codebase
+export const useAuth = useAuthStore;

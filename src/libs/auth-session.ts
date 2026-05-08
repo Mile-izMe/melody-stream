@@ -1,8 +1,6 @@
 import type { User } from "@/src/types/user";
 import { useAuthStore } from "@/src/stores/use-auth-store";
 
-export const AUTH_DEVICE_ID_STORAGE_KEY = "melody-stream-device-id";
-
 export interface JwtPayloadLike {
   sub?: string;
   exp?: number;
@@ -16,28 +14,17 @@ export function getOrCreateDeviceId() {
   if (typeof window === "undefined") {
     return "server";
   }
-
   // Try to get from Zustand store first
   const storeDeviceId = useAuthStore.getState().deviceId;
-  if (storeDeviceId) {
-    return storeDeviceId;
-  }
+  if (storeDeviceId) return storeDeviceId;
 
-  // Fallback to localStorage for backwards compatibility
-  const savedDeviceId = window.localStorage.getItem(AUTH_DEVICE_ID_STORAGE_KEY);
-  if (savedDeviceId) {
-    useAuthStore.getState().setDeviceId(savedDeviceId);
-    return savedDeviceId;
-  }
-
-  // Generate new device ID
+  // Generate new device ID and persist via Zustand (persist middleware handles storage)
   const generatedDeviceId =
     typeof crypto !== "undefined" && "randomUUID" in crypto
       ? crypto.randomUUID()
       : `device-${Date.now()}-${Math.random().toString(36).slice(2)}`;
 
   useAuthStore.getState().setDeviceId(generatedDeviceId);
-  window.localStorage.setItem(AUTH_DEVICE_ID_STORAGE_KEY, generatedDeviceId);
   return generatedDeviceId;
 }
 

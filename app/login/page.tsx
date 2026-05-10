@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { useAuth } from "@/src/stores/use-auth";
+import { useAuth } from "@/src/stores/use-auth-store";
 import { LoginModal } from "@/src/components/auth/LoginModal";
 import { RegisterModal } from "@/src/components/auth/RegisterModal";
 import { Play } from "lucide-react";

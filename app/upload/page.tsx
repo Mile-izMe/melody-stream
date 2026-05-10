@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { useAuth } from "@/src/stores/use-auth";
+import { useAuth } from "@/src/stores/use-auth-store";
 import { requestSongPresignUrl } from "@/src/graphql/mutations/song-presign-url";
 import { requestSongSaveMetadata } from "@/src/graphql/mutations/song-save-metadata";
 import {

@@ -4,7 +4,7 @@ import { useState } from "react";
 import { Search as SearchIcon, Music } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { requestSongs } from "@/src/graphql/queries/songs";
-import { useAuth } from "@/src/stores/use-auth";
+import { useAuth } from "@/src/stores/use-auth-store";
 import { Spinner } from "@/src/components/ui/spinner";
 import Image from "next/image";
 

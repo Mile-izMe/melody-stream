@@ -1,6 +1,6 @@
 "use client";
 
-import { useAuth } from "@/src/stores/use-auth";
+import { useAuth } from "@/src/stores/use-auth-store";
 import {
   Home as HomeIcon,
   LogIn,

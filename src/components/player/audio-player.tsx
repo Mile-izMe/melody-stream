@@ -74,7 +74,7 @@ export const AudioPlayer: React.FC<AudioPlayerProps> = ({ track }) => {
     <div className="bg-black/60 backdrop-blur-3xl border-t border-white/10 p-3 md:px-8 flex items-center justify-between shadow-2xl h-24 text-white">
       <audio
         ref={audioRef}
-        src={`/api/stream/${track.filename}`}
+        src={track.audioUrl}
         onTimeUpdate={handleTimeUpdate}
         onLoadedMetadata={handleLoadedMetadata}
         onEnded={() => setIsPlaying(false)}

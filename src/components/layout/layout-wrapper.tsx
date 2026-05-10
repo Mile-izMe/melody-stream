@@ -7,10 +7,11 @@ import { Layout } from "./sidebar";
 export function LayoutWrapper({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
 
-  // Don't show layout for login page
+  // Only skip sidebar for the login page
   if (pathname === "/login") {
     return <>{children}</>;
   }
 
+  // Sidebar is always visible — app is freely explorable
   return <Layout>{children}</Layout>;
 }

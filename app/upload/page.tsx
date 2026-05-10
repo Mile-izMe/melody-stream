@@ -12,8 +12,10 @@ import {
   AlertCircle,
   X,
   Headphones,
+  ArrowLeft,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
+import Link from "next/link";
 
 export default function UploadPage() {
   const { user } = useAuth();
@@ -25,11 +27,10 @@ export default function UploadPage() {
   const [uploading, setUploading] = useState(false);
   const [success, setSuccess] = useState(false);
   const [error, setError] = useState("");
+  const [dragOver, setDragOver] = useState(false);
 
   useEffect(() => {
-    if (!user) {
-      router.push("/login");
-    }
+    if (!user) router.push("/login");
   }, [user, router]);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -39,9 +40,21 @@ export default function UploadPage() {
         setFile(selectedFile);
         setError("");
       } else {
-        setError("Vui lòng chọn một tệp âm thanh (mp3, wav, v.v.)");
+        setError("Please select an audio file (MP3, WAV, etc.)");
         setFile(null);
       }
+    }
+  };
+
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    setDragOver(false);
+    const droppedFile = e.dataTransfer.files?.[0];
+    if (droppedFile?.type.startsWith("audio/")) {
+      setFile(droppedFile);
+      setError("");
+    } else {
+      setError("Please drop an audio file");
     }
   };
 
@@ -54,10 +67,7 @@ export default function UploadPage() {
 
     try {
       const presignResponse = await requestSongPresignUrl(
-        {
-          contentType: file.type,
-          fileName: file.name,
-        },
+        { contentType: file.type, fileName: file.name },
         user.token,
       );
 
@@ -65,15 +75,11 @@ export default function UploadPage() {
 
       const uploadResponse = await fetch(presignData.url, {
         method: "PUT",
-        headers: {
-          "Content-Type": file.type,
-        },
+        headers: { "Content-Type": file.type },
         body: file,
       });
 
-      if (!uploadResponse.ok) {
-        throw new Error("Không thể tải file lên S3");
-      }
+      if (!uploadResponse.ok) throw new Error("Upload to storage failed");
 
       await requestSongSaveMetadata(
         {
@@ -88,162 +94,185 @@ export default function UploadPage() {
       setSuccess(true);
       setTimeout(() => router.push("/"), 2000);
     } catch (err: unknown) {
-      setError(
-        err instanceof Error ? err.message : "Không thể tải bài hát lên",
-      );
+      setError(err instanceof Error ? err.message : "Upload failed");
     } finally {
       setUploading(false);
     }
   };
 
   return (
-    <div className="max-w-3xl mx-auto space-y-10">
-      <header>
-        <h1 className="text-4xl font-bold tracking-tight mb-2">Sonic Studio</h1>
-        <p className="text-gray-400">
-          Upload your latest masterpieces to the MelodyStream cloud.
+    <div className="max-w-xl mx-auto px-6 py-8">
+      {/* Header */}
+      <div className="mb-8">
+        <Link
+          href="/"
+          className="inline-flex items-center gap-1.5 text-sm text-ms-text-secondary hover:text-ms-text-primary ms-transition mb-4"
+        >
+          <ArrowLeft size={14} />
+          Back to Library
+        </Link>
+        <h1 className="text-2xl font-bold tracking-tight mb-1">
+          Upload Track
+        </h1>
+        <p className="text-sm text-ms-text-secondary">
+          Add a new track to your MelodyStream library.
         </p>
-      </header>
+      </div>
 
-      <form onSubmit={handleUpload} className="space-y-8">
-        <div className="bg-white/5 backdrop-blur-xl p-10 rounded-3xl border border-white/10 shadow-2xl relative overflow-hidden">
-          <div className="absolute top-0 left-0 w-full h-1 bg-linear-to-r from-blue-500 to-purple-500"></div>
+      <form onSubmit={handleUpload} className="space-y-6">
+        {/* Drop zone */}
+        <div
+          onDragOver={(e) => {
+            e.preventDefault();
+            setDragOver(true);
+          }}
+          onDragLeave={() => setDragOver(false)}
+          onDrop={handleDrop}
+          className={`
+            relative rounded-xl border-2 border-dashed p-10 flex flex-col items-center justify-center text-center ms-transition
+            ${
+              file
+                ? "border-ms-accent bg-ms-accent-subtle"
+                : dragOver
+                  ? "border-ms-accent bg-ms-accent-subtle"
+                  : "border-ms-border-strong bg-ms-bg-raised hover:border-ms-text-tertiary"
+            }
+          `}
+        >
+          <input
+            type="file"
+            accept="audio/*"
+            onChange={handleFileChange}
+            className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
+            aria-label="Choose audio file"
+          />
 
-          <div className="space-y-8">
-            {/* Drop Zone */}
-            <div
-              className={`relative border-2 border-dashed rounded-3xl p-12 transition-all flex flex-col items-center justify-center space-y-6 ${
-                file
-                  ? "border-purple-500 bg-purple-500/5"
-                  : "border-white/10 hover:border-purple-400/50 bg-white/5"
-              }`}
-            >
-              <input
-                type="file"
-                accept="audio/*"
-                onChange={handleFileChange}
-                className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-20"
-              />
-              <div
-                className={`w-20 h-20 rounded-2xl flex items-center justify-center transition-all ${
-                  file
-                    ? "bg-purple-500 text-white shadow-xl shadow-purple-500/20"
-                    : "bg-white/5 text-gray-500 border border-white/10"
-                }`}
-              >
-                {file ? <CheckCircle size={40} /> : <UploadIcon size={40} />}
-              </div>
-              <div className="text-center">
-                <p className="text-lg font-bold text-white">
-                  {file ? file.name : "Choose audio file"}
-                </p>
-                <p className="text-sm text-gray-500 mt-2">
-                  MP3, WAV, or AAC (Max 10MB)
-                </p>
-              </div>
-              {file && (
-                <button
-                  type="button"
-                  onClick={(e) => {
-                    e.preventDefault();
-                    setFile(null);
-                  }}
-                  className="absolute top-4 right-4 p-2 bg-white/10 text-white rounded-full hover:bg-white/20 transition-all z-30"
-                >
-                  <X size={20} />
-                </button>
-              )}
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div className="space-y-3">
-                <label className="text-xs font-bold uppercase tracking-widest text-gray-500 px-1">
-                  Track Title
-                </label>
-                <div className="relative">
-                  <Music
-                    className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500"
-                    size={18}
-                  />
-                  <input
-                    type="text"
-                    value={title}
-                    onChange={(e) => setTitle(e.target.value)}
-                    className="w-full pl-12 pr-4 py-4 bg-white/5 border border-white/10 focus:border-purple-500 focus:bg-white/10 rounded-2xl outline-none transition-all placeholder:text-gray-600 text-white"
-                    placeholder="Enter track title"
-                    required
-                  />
-                </div>
-              </div>
-              <div className="space-y-3">
-                <label className="text-xs font-bold uppercase tracking-widest text-gray-500 px-1">
-                  Artist Name
-                </label>
-                <div className="relative">
-                  <Headphones
-                    className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500"
-                    size={18}
-                  />
-                  <input
-                    type="text"
-                    value={artist}
-                    onChange={(e) => setArtist(e.target.value)}
-                    className="w-full pl-12 pr-4 py-4 bg-white/5 border border-white/10 focus:border-purple-500 focus:bg-white/10 rounded-2xl outline-none transition-all placeholder:text-gray-600 text-white"
-                    placeholder="Enter artist name"
-                    required
-                  />
-                </div>
-              </div>
-            </div>
+          <div
+            className={`size-14 rounded-xl flex items-center justify-center mb-4 ms-transition ${
+              file
+                ? "bg-ms-accent text-ms-bg-deep"
+                : "bg-ms-bg-elevated text-ms-text-tertiary"
+            }`}
+          >
+            {file ? <CheckCircle size={28} /> : <UploadIcon size={28} />}
           </div>
 
-          <button
-            type="submit"
-            disabled={uploading || !file}
-            className="w-full mt-10 bg-white text-black font-bold py-5 rounded-2xl shadow-xl hover:scale-[1.01] active:scale-95 disabled:opacity-30 disabled:scale-100 flex items-center justify-center space-x-3 transition-all"
-          >
-            {uploading ? (
-              <>
-                <div className="animate-spin rounded-full h-5 w-5 border-t-2 border-black"></div>
-                <span className="uppercase tracking-widest text-sm">
-                  Uploading Sonic Data...
-                </span>
-              </>
-            ) : (
-              <>
-                <UploadIcon size={20} />
-                <span className="uppercase tracking-widest text-sm">
-                  Publish to MelodyStream
-                </span>
-              </>
-            )}
-          </button>
+          <p className="text-sm font-medium text-ms-text-primary mb-1">
+            {file ? file.name : "Drop an audio file here, or click to browse"}
+          </p>
+          <p className="text-xs text-ms-text-tertiary">
+            MP3, WAV, or AAC
+          </p>
+
+          {file && (
+            <button
+              type="button"
+              onClick={(e) => {
+                e.preventDefault();
+                setFile(null);
+              }}
+              className="absolute top-3 right-3 p-1.5 rounded-lg bg-ms-bg-elevated text-ms-text-secondary hover:text-ms-text-primary ms-transition z-20"
+              aria-label="Remove file"
+            >
+              <X size={16} />
+            </button>
+          )}
         </div>
+
+        {/* Metadata fields */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="space-y-1.5">
+            <label
+              htmlFor="track-title"
+              className="text-xs font-semibold text-ms-text-secondary"
+            >
+              Track Title
+            </label>
+            <div className="relative">
+              <Music
+                className="absolute left-3.5 top-1/2 -translate-y-1/2 text-ms-text-tertiary"
+                size={16}
+              />
+              <input
+                id="track-title"
+                type="text"
+                value={title}
+                onChange={(e) => setTitle(e.target.value)}
+                className="w-full pl-10 pr-4 py-3 bg-ms-bg-elevated border border-ms-border-default focus:border-ms-accent rounded-xl outline-none text-sm text-ms-text-primary placeholder:text-ms-text-tertiary ms-transition"
+                placeholder="Track title"
+                required
+              />
+            </div>
+          </div>
+          <div className="space-y-1.5">
+            <label
+              htmlFor="track-artist"
+              className="text-xs font-semibold text-ms-text-secondary"
+            >
+              Artist Name
+            </label>
+            <div className="relative">
+              <Headphones
+                className="absolute left-3.5 top-1/2 -translate-y-1/2 text-ms-text-tertiary"
+                size={16}
+              />
+              <input
+                id="track-artist"
+                type="text"
+                value={artist}
+                onChange={(e) => setArtist(e.target.value)}
+                className="w-full pl-10 pr-4 py-3 bg-ms-bg-elevated border border-ms-border-default focus:border-ms-accent rounded-xl outline-none text-sm text-ms-text-primary placeholder:text-ms-text-tertiary ms-transition"
+                placeholder="Artist name"
+                required
+              />
+            </div>
+          </div>
+        </div>
+
+        {/* Submit */}
+        <button
+          type="submit"
+          disabled={uploading || !file}
+          className="w-full bg-ms-accent text-ms-bg-deep font-semibold py-3.5 rounded-xl hover:bg-ms-accent-hover active:scale-[0.98] disabled:opacity-30 disabled:active:scale-100 flex items-center justify-center gap-2 ms-transition"
+        >
+          {uploading ? (
+            <>
+              <div className="size-4 border-2 border-ms-bg-deep/30 border-t-ms-bg-deep rounded-full animate-spin" />
+              <span className="text-sm">Uploading...</span>
+            </>
+          ) : (
+            <>
+              <UploadIcon size={16} />
+              <span className="text-sm">Publish Track</span>
+            </>
+          )}
+        </button>
       </form>
 
+      {/* Toast notifications */}
       <AnimatePresence>
         {success && (
           <motion.div
-            initial={{ opacity: 0, y: 50 }}
+            initial={{ opacity: 0, y: 40 }}
             animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0 }}
-            className="fixed bottom-32 left-1/2 -translate-x-1/2 bg-white text-black font-bold px-8 py-4 rounded-3xl shadow-2xl border border-white/20 flex items-center space-x-4 z-60"
+            exit={{ opacity: 0, y: 40 }}
+            transition={{ ease: [0.16, 1, 0.3, 1] }}
+            className="fixed bottom-28 left-1/2 -translate-x-1/2 bg-ms-bg-elevated text-ms-text-primary font-medium px-6 py-3.5 rounded-xl shadow-2xl border border-ms-border-default flex items-center gap-3 z-[60]"
           >
-            <div className="w-8 h-8 bg-black rounded-full flex items-center justify-center text-white">
-              <CheckCircle size={18} />
-            </div>
-            <span>Uploaded. Processing HLS playlist... Redirecting...</span>
+            <CheckCircle size={18} className="text-ms-success shrink-0" />
+            <span className="text-sm">Track uploaded. Processing HLS stream...</span>
           </motion.div>
         )}
         {error && (
           <motion.div
-            initial={{ opacity: 0, y: 50 }}
+            initial={{ opacity: 0, y: 40 }}
             animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0 }}
-            className="fixed bottom-32 left-1/2 -translate-x-1/2 bg-red-500 text-white font-bold px-8 py-4 rounded-3xl shadow-2xl flex items-center space-x-4 z-60"
+            exit={{ opacity: 0, y: 40 }}
+            transition={{ ease: [0.16, 1, 0.3, 1] }}
+            className="fixed bottom-28 left-1/2 -translate-x-1/2 bg-ms-error text-ms-text-primary font-medium px-6 py-3.5 rounded-xl shadow-2xl flex items-center gap-3 z-[60]"
           >
-            <AlertCircle size={24} />
-            <span>{error}</span>
+            <AlertCircle size={18} className="shrink-0" />
+            <span className="text-sm">{error}</span>
           </motion.div>
         )}
       </AnimatePresence>

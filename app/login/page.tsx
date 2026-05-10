@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useAuth } from "@/src/stores/use-auth";
 import { LoginModal } from "@/src/components/auth/LoginModal";
 import { RegisterModal } from "@/src/components/auth/RegisterModal";
+import { Play } from "lucide-react";
 import { motion } from "framer-motion";
 
 export default function LoginPage() {
@@ -15,9 +16,7 @@ export default function LoginPage() {
 
   // Redirect if already logged in
   useEffect(() => {
-    if (user) {
-      router.push("/");
-    }
+    if (user) router.push("/");
   }, [user, router]);
 
   const handleOpenLogin = () => {
@@ -30,68 +29,58 @@ export default function LoginPage() {
     setIsRegisterOpen(true);
   };
 
-  const handleCloseLogin = () => {
-    setIsLoginOpen(false);
-  };
-
-  const handleCloseRegister = () => {
-    setIsRegisterOpen(false);
-  };
-
   return (
     <div className="fixed inset-0 overflow-hidden">
-      {/* Animated background */}
-      <div className="absolute inset-0 bg-linear-to-br from-slate-900 via-slate-900 to-slate-800">
+      {/* Background — warm dark with subtle depth */}
+      <div className="absolute inset-0 bg-ms-bg-deep">
         <div className="absolute inset-0 overflow-hidden">
+          {/* Subtle warm glow — top right */}
           <motion.div
-            animate={{
-              y: [0, -20, 0],
-            }}
+            animate={{ y: [0, -15, 0] }}
+            transition={{ duration: 10, repeat: Infinity, ease: "easeInOut" }}
+            className="absolute -top-1/3 -right-1/4 w-[600px] h-[600px] rounded-full blur-[120px]"
+            style={{ background: "oklch(0.70 0.18 38 / 6%)" }}
+          />
+          {/* Subtle warm glow — bottom left */}
+          <motion.div
+            animate={{ y: [0, 12, 0] }}
             transition={{
-              duration: 8,
+              duration: 12,
               repeat: Infinity,
               ease: "easeInOut",
+              delay: 2,
             }}
-            className="absolute -top-1/2 -right-1/4 w-200 h-200 bg-linear-to-tl from-purple-600/20 to-blue-600/20 rounded-full blur-3xl"
+            className="absolute -bottom-1/3 -left-1/4 w-[500px] h-[500px] rounded-full blur-[120px]"
+            style={{ background: "oklch(0.70 0.18 38 / 4%)" }}
           />
-          <motion.div
-            animate={{
-              y: [0, 20, 0],
-            }}
-            transition={{
-              duration: 10,
-              repeat: Infinity,
-              ease: "easeInOut",
-              delay: 1,
-            }}
-            className="absolute -bottom-1/2 -left-1/4 w-200 h-200 bg-linear-to-tr from-blue-600/20 to-cyan-600/20 rounded-full blur-3xl"
-          />
-          <motion.div
-            animate={{
-              scale: [1, 1.2, 1],
-              opacity: [0.3, 0.5, 0.3],
-            }}
-            transition={{
-              duration: 6,
-              repeat: Infinity,
-              ease: "easeInOut",
-            }}
-            className="absolute top-1/2 left-1/3 w-150 h-150 bg-linear-to-br from-indigo-500/10 to-purple-500/10 rounded-full blur-3xl"
-          />
+        </div>
+
+        {/* Centered branding */}
+        <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
+          <div className="flex items-center gap-3 mb-3">
+            <div className="size-10 rounded-xl bg-ms-accent flex items-center justify-center">
+              <Play size={20} className="text-ms-bg-deep ml-0.5" />
+            </div>
+            <span className="text-2xl font-bold tracking-tight text-ms-text-primary">
+              MelodyStream
+            </span>
+          </div>
+          <p className="text-sm text-ms-text-tertiary">
+            Your music, your stage.
+          </p>
         </div>
       </div>
 
-      {/* Content */}
+      {/* Auth modals */}
       <div className="relative z-10 w-full h-full">
         <LoginModal
           isOpen={isLoginOpen}
-          onClose={handleCloseLogin}
+          onClose={() => setIsLoginOpen(false)}
           onSwitchToRegister={handleOpenRegister}
         />
-
         <RegisterModal
           isOpen={isRegisterOpen}
-          onClose={handleCloseRegister}
+          onClose={() => setIsRegisterOpen(false)}
           onSwitchToLogin={handleOpenLogin}
         />
       </div>

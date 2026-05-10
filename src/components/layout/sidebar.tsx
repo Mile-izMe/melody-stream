@@ -1,150 +1,230 @@
 "use client";
 
 import { useAuth } from "@/src/stores/use-auth";
-import { useTheme } from "next-themes";
 import {
   Home as HomeIcon,
   LogIn,
   LogOut,
-  Moon,
-  Play,
-  Sun,
   Upload as UploadIcon,
+  Search,
+  Play,
+  Heart,
+  Library,
 } from "lucide-react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import React from "react";
 
 interface LayoutProps {
   children: React.ReactNode;
 }
 
+function NavLink({
+  href,
+  icon: Icon,
+  label,
+  active,
+}: {
+  href: string;
+  icon: React.ElementType;
+  label: string;
+  active: boolean;
+}) {
+  return (
+    <Link
+      href={href}
+      className={`
+        flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm ms-transition
+        ${
+          active
+            ? "bg-ms-accent-subtle text-ms-accent font-semibold"
+            : "text-ms-text-secondary hover:text-ms-text-primary hover:bg-ms-bg-elevated"
+        }
+      `}
+    >
+      <Icon size={18} />
+      <span>{label}</span>
+    </Link>
+  );
+}
+
+/* Auth-gated button — prompts login instead of navigating */
+function AuthGatedLink({
+  href,
+  icon: Icon,
+  label,
+  active,
+  isAuthed,
+}: {
+  href: string;
+  icon: React.ElementType;
+  label: string;
+  active: boolean;
+  isAuthed: boolean;
+}) {
+  const router = useRouter();
+
+  const handleClick = (e: React.MouseEvent) => {
+    if (!isAuthed) {
+      e.preventDefault();
+      router.push("/login");
+    }
+  };
+
+  return (
+    <Link
+      href={href}
+      onClick={handleClick}
+      className={`
+        flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm ms-transition
+        ${
+          active
+            ? "bg-ms-accent-subtle text-ms-accent font-semibold"
+            : "text-ms-text-secondary hover:text-ms-text-primary hover:bg-ms-bg-elevated"
+        }
+      `}
+    >
+      <Icon size={18} />
+      <span>{label}</span>
+      {!isAuthed && (
+        <span className="ml-auto text-[9px] uppercase tracking-widest font-semibold text-ms-text-tertiary bg-ms-bg-elevated px-1.5 py-0.5 rounded">
+          Sign in
+        </span>
+      )}
+    </Link>
+  );
+}
+
 export const Layout: React.FC<LayoutProps> = ({ children }) => {
   const { user, logout } = useAuth();
-  const { theme, setTheme } = useTheme();
   const pathname = usePathname();
-  const isDarkMode = (theme ?? "dark") === "dark";
-
-  const handleSetDark = () => setTheme("dark");
-  const handleSetLight = () => setTheme("light");
+  const isAuthed = Boolean(user);
 
   return (
     <div className="flex flex-col h-screen relative z-10">
       <div className="flex flex-1 overflow-hidden">
         {/* Sidebar */}
-        <aside className="w-64 bg-white/5 backdrop-blur-xl border-r border-white/10 hidden md:flex flex-col p-6 space-y-8 z-20">
-          <Link href="/" className="flex items-center space-x-3">
-            <div className="w-8 h-8 bg-linear-to-tr from-purple-500 to-blue-500 rounded-lg flex items-center justify-center shadow-lg">
-              <Play size={18} fill="white" className="text-white ml-0.5" />
+        <aside className="w-60 bg-ms-bg-raised border-r border-ms-border-subtle hidden md:flex flex-col z-20">
+          {/* Logo */}
+          <Link
+            href="/"
+            className="flex items-center gap-2.5 px-6 py-5 border-b border-ms-border-subtle"
+          >
+            <div className="size-7 rounded-lg bg-ms-accent flex items-center justify-center">
+              <Play size={14} className="text-ms-bg-deep ml-0.5" />
             </div>
-            <span className="text-xl font-bold tracking-tight">
+            <span className="text-base font-bold tracking-tight text-ms-text-primary">
               MelodyStream
             </span>
           </Link>
 
-          <nav className="space-y-4">
-            <p className="text-xs font-semibold uppercase tracking-widest text-gray-500">
-              Discover
+          {/* Browse — open to everyone */}
+          <nav className="px-3 py-4 space-y-1">
+            <p className="px-3 mb-2 text-[10px] font-semibold uppercase tracking-[0.2em] text-ms-text-tertiary">
+              Browse
             </p>
-            <Link
-              href="/"
-              className={`flex items-center space-x-3 px-4 py-3 rounded-xl transition-all ${pathname === "/" ? "bg-white/10 text-white font-bold" : "text-gray-400 hover:bg-white/5 hover:text-white"}`}
-            >
-              <HomeIcon size={20} />
-              <span>Trang chủ</span>
-            </Link>
-            {user && (
-              <Link
-                href="/upload"
-                className={`flex items-center space-x-3 px-4 py-3 rounded-xl transition-all ${pathname === "/upload" ? "bg-white/10 text-white font-bold" : "text-gray-400 hover:bg-white/5 hover:text-white"}`}
-              >
-                <UploadIcon size={20} />
-                <span>Tải nhạc lên</span>
-              </Link>
-            )}
+            <NavLink href="/" icon={HomeIcon} label="Home" active={pathname === "/"} />
+            <NavLink href="/search" icon={Search} label="Search" active={pathname === "/search"} />
           </nav>
 
-          <div className="mt-auto">
+          {/* Your stuff — auth-gated */}
+          <nav className="px-3 pb-4 space-y-1">
+            <p className="px-3 mb-2 text-[10px] font-semibold uppercase tracking-[0.2em] text-ms-text-tertiary">
+              Your Music
+            </p>
+            <AuthGatedLink
+              href="/upload"
+              icon={UploadIcon}
+              label="Upload"
+              active={pathname === "/upload"}
+              isAuthed={isAuthed}
+            />
+            <AuthGatedLink
+              href="/library"
+              icon={Library}
+              label="Library"
+              active={pathname === "/library"}
+              isAuthed={isAuthed}
+            />
+            <AuthGatedLink
+              href="/liked"
+              icon={Heart}
+              label="Liked Songs"
+              active={pathname === "/liked"}
+              isAuthed={isAuthed}
+            />
+          </nav>
+
+          {/* User section */}
+          <div className="px-3 pb-4 mt-auto">
             {user ? (
-              <div className="bg-white/5 rounded-2xl p-4 border border-white/10 space-y-4">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-full bg-linear-to-br from-indigo-500 to-purple-600 flex items-center justify-center font-bold text-white uppercase">
+              <div className="rounded-xl bg-ms-bg-elevated border border-ms-border-subtle p-3.5 space-y-3">
+                <div className="flex items-center gap-2.5">
+                  <div className="size-8 rounded-full bg-ms-accent flex items-center justify-center text-ms-bg-deep text-xs font-bold uppercase shrink-0">
                     {user.username.substring(0, 2)}
                   </div>
-                  <div className="flex-1 overflow-hidden">
-                    <p className="text-sm font-medium truncate">
+                  <div className="min-w-0 flex-1">
+                    <p className="text-sm font-medium truncate text-ms-text-primary">
                       {user.username}
                     </p>
-                    <p className="text-[10px] text-gray-500 font-bold uppercase tracking-widest">
-                      Premium
+                    <p className="text-[10px] text-ms-text-tertiary uppercase tracking-widest font-semibold">
+                      Creator
                     </p>
                   </div>
                 </div>
                 <button
                   onClick={logout}
-                  className="w-full flex items-center justify-center space-x-2 px-3 py-2 rounded-lg text-red-400 hover:bg-red-500/10 transition-colors text-sm border border-red-500/20"
+                  className="w-full flex items-center justify-center gap-2 px-3 py-2 rounded-lg text-xs text-ms-error border border-ms-error/20 hover:bg-ms-error/8 ms-transition"
                 >
-                  <LogOut size={16} />
-                  <span>Đăng xuất</span>
+                  <LogOut size={14} />
+                  Sign Out
                 </button>
               </div>
             ) : (
-              <Link
-                href="/login"
-                className="flex items-center justify-center gap-2 px-4 py-3 rounded-xl bg-white text-black font-bold text-sm hover:scale-105 active:scale-95 transition-transform"
-              >
-                <LogIn size={18} />
-                <span>Đăng nhập</span>
-              </Link>
+              <div className="space-y-2">
+                <p className="text-xs text-ms-text-tertiary text-center px-2">
+                  Sign in to upload, save, and build your library.
+                </p>
+                <Link
+                  href="/login"
+                  className="flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg bg-ms-accent text-ms-bg-deep font-semibold text-sm hover:bg-ms-accent-hover active:scale-[0.98] ms-transition"
+                >
+                  <LogIn size={16} />
+                  Sign In
+                </Link>
+              </div>
             )}
-
-            <button
-              onClick={handleSetDark}
-              className="mt-4 w-full flex items-center space-x-3 px-4 py-3 rounded-xl text-gray-400 hover:bg-white/5 transition-colors"
-            >
-              {isDarkMode ? <Sun size={20} /> : <Moon size={20} />}
-              <span>{isDarkMode ? "Chế độ sáng" : "Chế độ tối"}</span>
-            </button>
           </div>
         </aside>
 
-        {/* Main Content */}
+        {/* Main content */}
         <main className="flex-1 overflow-y-auto relative z-0">
-          {/* Header Mobile & Desktop Gradient Overlay */}
-          <div className="sticky top-0 h-20 flex items-center justify-between px-8 bg-white/5 backdrop-blur-md z-30 border-b border-white/5">
-            <div className="flex md:hidden items-center space-x-2">
-              <div className="w-6 h-6 bg-linear-to-tr from-purple-500 to-blue-500 rounded flex items-center justify-center">
-                <Play size={12} fill="white" className="text-white ml-0.5" />
+          {/* Mobile header */}
+          <div className="sticky top-0 z-30 h-14 flex md:hidden items-center justify-between px-4 bg-ms-bg-raised/95 backdrop-blur-md border-b border-ms-border-subtle">
+            <Link href="/" className="flex items-center gap-2">
+              <div className="size-6 rounded bg-ms-accent flex items-center justify-center">
+                <Play size={11} className="text-ms-bg-deep ml-0.5" />
               </div>
-              <span className="font-bold">MelodyStream</span>
-            </div>
-
-            <div className="hidden md:flex gap-4">
-              {/* Search placeholder or nav buttons */}
-            </div>
-
-            <div className="flex items-center gap-4">
-              <div className="flex bg-black/30 rounded-full p-1 border border-white/10">
-                <button
-                  onClick={handleSetDark}
-                  className={`px-4 py-1 rounded-full text-xs transition-all ${isDarkMode ? "bg-white text-black font-semibold" : "text-gray-400"}`}
-                >
-                  Dark
-                </button>
-                <button
-                  onClick={handleSetLight}
-                  className={`px-4 py-1 rounded-full text-xs transition-all ${!isDarkMode ? "bg-white text-black font-semibold" : "text-gray-400"}`}
-                >
-                  Light
-                </button>
-              </div>
-              {user && (
+              <span className="text-sm font-bold">MelodyStream</span>
+            </Link>
+            <div className="flex items-center gap-3">
+              <Link href="/search" className="text-ms-text-secondary hover:text-ms-text-primary ms-transition">
+                <Search size={20} />
+              </Link>
+              {user ? (
                 <button
                   onClick={logout}
-                  className="hidden md:block px-6 py-2 rounded-full bg-white text-black font-bold text-sm hover:scale-105 active:scale-95 transition-transform"
+                  className="text-ms-text-secondary hover:text-ms-text-primary ms-transition"
                 >
-                  Đăng xuất
+                  <LogOut size={18} />
                 </button>
+              ) : (
+                <Link
+                  href="/login"
+                  className="text-xs font-semibold text-ms-accent hover:text-ms-accent-hover ms-transition"
+                >
+                  Sign In
+                </Link>
               )}
             </div>
           </div>

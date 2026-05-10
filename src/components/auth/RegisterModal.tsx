@@ -33,51 +33,37 @@ export function RegisterModal({
 
   const validateForm = () => {
     if (!username || !email || !password || !confirmPassword) {
-      setError("Vui lòng điền tất cả các trường");
+      setError("All fields are required");
       return false;
     }
-
     if (password.length < 6) {
-      setError("Mật khẩu phải có ít nhất 6 ký tự");
+      setError("Password must be at least 6 characters");
       return false;
     }
-
     if (password !== confirmPassword) {
-      setError("Mật khẩu xác nhận không khớp");
+      setError("Passwords do not match");
       return false;
     }
-
     if (!email.includes("@")) {
-      setError("Email không hợp lệ");
+      setError("Please enter a valid email");
       return false;
     }
-
     return true;
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
-
-    if (!validateForm()) {
-      return;
-    }
-
+    if (!validateForm()) return;
     setLoading(true);
 
     try {
-      const response = await requestRegister({
-        username,
-        email,
-        password,
-      });
-
+      const response = await requestRegister({ username, email, password });
       if (!response.register.data) {
-        throw new Error(response.register.message || "Không thể đăng ký");
+        throw new Error(response.register.message || "Registration failed");
       }
 
       setSuccess(true);
-
       setTimeout(() => {
         setUsername("");
         setEmail("");
@@ -88,148 +74,163 @@ export function RegisterModal({
         onSwitchToLogin();
       }, 1500);
     } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : "Đã có lỗi xảy ra");
+      setError(err instanceof Error ? err.message : "Something went wrong");
     } finally {
       setLoading(false);
     }
   };
 
-  const handleSocialRegister = () => {
-    setError("Đăng ký bằng mạng xã hội chưa được triển khai.");
-  };
-
   if (!isOpen) return null;
 
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
-      <motion.div
-        initial={{ opacity: 0, scale: 0.9 }}
-        animate={{ opacity: 1, scale: 1 }}
-        exit={{ opacity: 0, scale: 0.9 }}
-        className="w-full max-w-md max-h-[90vh] bg-white/5 backdrop-blur-xl rounded-3xl p-8 border border-white/10 shadow-2xl relative overflow-y-auto"
-      >
-        <div className="absolute top-0 left-0 w-full h-1 bg-linear-to-r from-blue-500 to-purple-500"></div>
+  const passwordsMatch = confirmPassword && password === confirmPassword;
+  const passwordsMismatch = confirmPassword && password !== confirmPassword;
 
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-ms-bg-deep/60 backdrop-blur-sm p-4">
+      <motion.div
+        initial={{ opacity: 0, scale: 0.96, y: 8 }}
+        animate={{ opacity: 1, scale: 1, y: 0 }}
+        exit={{ opacity: 0, scale: 0.96, y: 8 }}
+        transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
+        className="w-full max-w-sm max-h-[90vh] bg-ms-bg-raised rounded-2xl p-7 border border-ms-border-default shadow-2xl relative overflow-y-auto"
+      >
         <button
           onClick={onClose}
-          className="absolute top-4 right-4 text-gray-500 hover:text-white transition-colors"
+          className="absolute top-4 right-4 text-ms-text-tertiary hover:text-ms-text-primary ms-transition"
+          aria-label="Close"
         >
-          <X size={24} />
+          <X size={20} />
         </button>
 
-        <div className="flex flex-col items-center mb-10">
-          <h1 className="text-3xl font-bold tracking-tight text-center">
-            Join MelodyStream
+        <div className="mb-8">
+          <h1 className="text-2xl font-bold tracking-tight mb-1.5">
+            Create an account
           </h1>
-          <p className="text-sm text-gray-500 mt-2">
-            Create an account to start uploading
+          <p className="text-sm text-ms-text-secondary">
+            Join MelodyStream and start uploading
           </p>
         </div>
 
         {success && (
           <motion.div
-            initial={{ opacity: 0, y: -10 }}
+            initial={{ opacity: 0, y: -6 }}
             animate={{ opacity: 1, y: 0 }}
-            className="p-4 rounded-xl text-sm mb-6 border bg-green-500/10 border-green-500/20 text-green-400 flex items-center gap-2"
+            className="p-3 rounded-lg text-sm mb-5 bg-ms-success/10 border border-ms-success/20 text-ms-success flex items-center gap-2"
           >
-            <Check size={18} />
-            Đăng ký thành công! Đang chuyển hướng...
+            <Check size={16} />
+            Account created. Redirecting to sign in...
           </motion.div>
         )}
 
         {error && (
-          <div className="p-4 rounded-xl text-sm mb-6 border bg-red-500/10 border-red-500/20 text-red-400">
+          <div className="p-3 rounded-lg text-sm mb-5 bg-ms-error/10 border border-ms-error/20 text-ms-error">
             {error}
           </div>
         )}
 
         <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="space-y-2">
-            <label className="text-xs font-bold uppercase tracking-widest text-gray-500 px-1">
+          <div className="space-y-1.5">
+            <label
+              htmlFor="register-username"
+              className="text-xs font-semibold text-ms-text-secondary"
+            >
               Username
             </label>
             <div className="relative">
               <UserIcon
-                className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500"
-                size={18}
+                className="absolute left-3.5 top-1/2 -translate-y-1/2 text-ms-text-tertiary"
+                size={16}
               />
               <input
+                id="register-username"
                 type="text"
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
-                className="w-full pl-12 pr-4 py-3 bg-white/5 border border-white/10 focus:border-blue-500 focus:bg-white/10 rounded-2xl outline-none transition-all placeholder:text-gray-600 text-white"
+                className="w-full pl-10 pr-4 py-3 bg-ms-bg-elevated border border-ms-border-default focus:border-ms-accent rounded-xl outline-none text-sm text-ms-text-primary placeholder:text-ms-text-tertiary ms-transition"
                 placeholder="Choose a username"
                 required
               />
             </div>
           </div>
 
-          <div className="space-y-2">
-            <label className="text-xs font-bold uppercase tracking-widest text-gray-500 px-1">
+          <div className="space-y-1.5">
+            <label
+              htmlFor="register-email"
+              className="text-xs font-semibold text-ms-text-secondary"
+            >
               Email
             </label>
             <div className="relative">
               <Mail
-                className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500"
-                size={18}
+                className="absolute left-3.5 top-1/2 -translate-y-1/2 text-ms-text-tertiary"
+                size={16}
               />
               <input
+                id="register-email"
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="w-full pl-12 pr-4 py-3 bg-white/5 border border-white/10 focus:border-blue-500 focus:bg-white/10 rounded-2xl outline-none transition-all placeholder:text-gray-600 text-white"
-                placeholder="Enter your email"
+                className="w-full pl-10 pr-4 py-3 bg-ms-bg-elevated border border-ms-border-default focus:border-ms-accent rounded-xl outline-none text-sm text-ms-text-primary placeholder:text-ms-text-tertiary ms-transition"
+                placeholder="you@example.com"
                 required
               />
             </div>
           </div>
 
-          <div className="space-y-2">
-            <label className="text-xs font-bold uppercase tracking-widest text-gray-500 px-1">
+          <div className="space-y-1.5">
+            <label
+              htmlFor="register-password"
+              className="text-xs font-semibold text-ms-text-secondary"
+            >
               Password
             </label>
             <div className="relative">
               <Lock
-                className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500"
-                size={18}
+                className="absolute left-3.5 top-1/2 -translate-y-1/2 text-ms-text-tertiary"
+                size={16}
               />
               <input
+                id="register-password"
                 type="password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="w-full pl-12 pr-4 py-3 bg-white/5 border border-white/10 focus:border-blue-500 focus:bg-white/10 rounded-2xl outline-none transition-all placeholder:text-gray-600 text-white"
-                placeholder="Create a password (min. 6 characters)"
+                className="w-full pl-10 pr-4 py-3 bg-ms-bg-elevated border border-ms-border-default focus:border-ms-accent rounded-xl outline-none text-sm text-ms-text-primary placeholder:text-ms-text-tertiary ms-transition"
+                placeholder="Min. 6 characters"
                 required
               />
             </div>
           </div>
 
-          <div className="space-y-2">
-            <label className="text-xs font-bold uppercase tracking-widest text-gray-500 px-1">
+          <div className="space-y-1.5">
+            <label
+              htmlFor="register-confirm"
+              className="text-xs font-semibold text-ms-text-secondary"
+            >
               Confirm Password
             </label>
             <div className="relative">
               <Lock
-                className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500"
-                size={18}
+                className="absolute left-3.5 top-1/2 -translate-y-1/2 text-ms-text-tertiary"
+                size={16}
               />
               <input
+                id="register-confirm"
                 type="password"
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
-                className="w-full pl-12 pr-4 py-3 bg-white/5 border border-white/10 focus:border-blue-500 focus:bg-white/10 rounded-2xl outline-none transition-all placeholder:text-gray-600 text-white"
-                placeholder="Confirm your password"
+                className="w-full pl-10 pr-4 py-3 bg-ms-bg-elevated border border-ms-border-default focus:border-ms-accent rounded-xl outline-none text-sm text-ms-text-primary placeholder:text-ms-text-tertiary ms-transition"
+                placeholder="Repeat your password"
                 required
               />
             </div>
-            {confirmPassword && password === confirmPassword && (
-              <p className="text-xs text-green-400 px-1 flex items-center gap-1">
-                <Check size={14} /> Passwords match
+            {passwordsMatch && (
+              <p className="text-xs text-ms-success flex items-center gap-1 px-1">
+                <Check size={12} /> Passwords match
               </p>
             )}
-            {confirmPassword && password !== confirmPassword && (
-              <p className="text-xs text-red-400 px-1">
-                Passwords don&apos;t match
+            {passwordsMismatch && (
+              <p className="text-xs text-ms-error px-1">
+                Passwords do not match
               </p>
             )}
           </div>
@@ -237,73 +238,26 @@ export function RegisterModal({
           <button
             type="submit"
             disabled={loading}
-            className="w-full bg-white text-black font-bold py-4 rounded-2xl shadow-xl hover:scale-[1.02] active:scale-95 flex items-center justify-center space-x-2 transition-all disabled:opacity-50 group mt-6"
+            className="w-full bg-ms-accent text-ms-bg-deep font-semibold py-3 rounded-xl hover:bg-ms-accent-hover active:scale-[0.98] flex items-center justify-center gap-2 ms-transition disabled:opacity-50 mt-2"
           >
-            <span>{loading ? "Creating Account..." : "Create Account"}</span>
-            {!loading && (
-              <ArrowRight
-                size={18}
-                className="group-hover:translate-x-1 transition-transform"
-              />
+            {loading ? (
+              <span>Creating account...</span>
+            ) : (
+              <>
+                <span>Create Account</span>
+                <ArrowRight size={16} />
+              </>
             )}
           </button>
         </form>
 
-        <div className="mt-8 pt-6 border-t border-white/10">
-          <p className="text-xs text-gray-500 text-center mb-4">
-            Or sign up with
-          </p>
-          <div className="flex gap-4">
-            <button
-              type="button"
-              onClick={handleSocialRegister}
-              disabled={loading}
-              className="flex-1 py-3 rounded-xl border border-white/10 hover:bg-white/5 transition-all disabled:opacity-50 flex items-center justify-center gap-2"
-            >
-              <svg className="w-5 h-5" viewBox="0 0 24 24">
-                <path
-                  fill="currentColor"
-                  d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
-                />
-                <path
-                  fill="currentColor"
-                  d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"
-                />
-                <path
-                  fill="currentColor"
-                  d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"
-                />
-                <path
-                  fill="currentColor"
-                  d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
-                />
-              </svg>
-              <span className="text-sm">Google</span>
-            </button>
-            <button
-              type="button"
-              onClick={handleSocialRegister}
-              disabled={loading}
-              className="flex-1 py-3 rounded-xl border border-white/10 hover:bg-white/5 transition-all disabled:opacity-50 flex items-center justify-center gap-2"
-            >
-              <svg className="w-5 h-5" viewBox="0 0 24 24">
-                <path
-                  fill="currentColor"
-                  d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"
-                />
-              </svg>
-              <span className="text-sm">Facebook</span>
-            </button>
-          </div>
-        </div>
-
-        <div className="mt-8 pt-6 border-t border-white/5 text-center">
+        <div className="mt-6 pt-5 border-t border-ms-border-subtle text-center">
           <button
             onClick={() => {
               onClose();
               onSwitchToLogin();
             }}
-            className="text-sm font-medium text-blue-400 hover:text-blue-300 transition-colors"
+            className="text-sm text-ms-accent-text hover:text-ms-accent ms-transition"
           >
             Already have an account? Sign in
           </button>

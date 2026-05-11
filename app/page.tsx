@@ -14,6 +14,7 @@ import { useEffect, useRef, useState } from "react";
 import PlayerBar from "@/src/components/PlayerBar";
 import TrackRow from "@/src/components/TrackRow";
 import { useSongsWebSocket } from "@/src/hooks/use-songs-websocket";
+import { notify } from "@/src/libs/toast";
 
 /* ─── Home page — unified experience for everyone ─── */
 export default function Home() {
@@ -112,6 +113,11 @@ export default function Home() {
     setCurrentTime(audio.currentTime);
   };
 
+  const handleEditSong = (songId: string) => {
+    notify.info("Edit song", `Opening editor for song: ${songId}`);
+    // TODO: Implement edit flow (navigate to editor or show modal)
+  };
+
   const songs = songsQuery.data?.data ?? [];
   const hasSongs = songs.length > 0;
 
@@ -197,6 +203,7 @@ export default function Home() {
                 isActive={activeSong?.id === song.id}
                 isPlaying={activeSong?.id === song.id && isPlaying}
                 onSelect={() => handleSelectSong(song)}
+                onEdit={handleEditSong}
               />
             ))}
           </div>

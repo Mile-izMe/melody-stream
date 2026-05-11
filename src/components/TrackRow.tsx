@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import { Play, Disc3, Music } from "lucide-react";
+import { Play, Disc3, Music, Pencil } from "lucide-react";
 import type { SongItem } from "@/src/features/graphql/queries/songs";
 
 export default function TrackRow({
@@ -10,12 +10,14 @@ export default function TrackRow({
   isActive,
   isPlaying,
   onSelect,
+  onEdit,
 }: {
   song: SongItem;
   index: number;
   isActive: boolean;
   isPlaying: boolean;
   onSelect: () => void;
+  onEdit?: (songId: string) => void;
 }) {
   return (
     <button
@@ -80,12 +82,30 @@ export default function TrackRow({
         {song.artist}
       </span>
 
-      <span className="text-right text-sm text-ms-text-tertiary tabular-nums">
-        {song.duration
-          ? `${Math.floor(song.duration / 60)}:${Math.floor(song.duration % 60)
-              .toString()
-              .padStart(2, "0")}`
-          : "--:--"}
+      <span className="text-right text-sm text-ms-text-tertiary tabular-nums flex items-center justify-end gap-2">
+        {song.isEditable && onEdit ? (
+          <button
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation();
+              onEdit(song.id);
+            }}
+            className="rounded-lg p-1.5 hover:bg-ms-accent/20 text-ms-accent hover:text-ms-accent-hover ms-transition"
+            aria-label="Edit song"
+            title="Edit"
+          >
+            <Pencil size={16} />
+          </button>
+        ) : null}
+        <span>
+          {song.duration
+            ? `${Math.floor(song.duration / 60)}:${Math.floor(
+                song.duration % 60,
+              )
+                .toString()
+                .padStart(2, "0")}`
+            : "--:--"}
+        </span>
       </span>
     </button>
   );

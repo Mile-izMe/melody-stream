@@ -15,6 +15,7 @@ export const SONGS_QUERY = /* GraphQL */ `
           duration
           createdAt
           updatedAt
+          isEditable
         }
       }
     }
@@ -47,6 +48,7 @@ export interface SongItem {
   duration?: number | null;
   createdAt: string;
   updatedAt: string;
+  isEditable?: boolean;
 }
 
 export interface SongsResponse {

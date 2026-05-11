@@ -3,14 +3,18 @@
 import { useState } from "react";
 import { Search as SearchIcon, Music } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
-import { requestSongs } from "@/src/graphql/queries/songs";
+import { requestSongs } from "@/src/features/graphql/queries/songs";
 import { useAuth } from "@/src/stores/use-auth-store";
 import { Spinner } from "@/src/components/ui/spinner";
 import Image from "next/image";
+import { useSongsWebSocket } from "@/src/hooks/use-songs-websocket";
 
 export default function SearchPage() {
   const { user } = useAuth();
   const [query, setQuery] = useState("");
+
+  /* Listen for real-time songs updates via WebSocket */
+  useSongsWebSocket();
 
   const songsQuery = useQuery({
     queryKey: ["songs-search", query, user?.id ?? "public"],
@@ -113,7 +117,11 @@ export default function SearchPage() {
                 </span>
                 <span className="text-right text-sm text-ms-text-tertiary tabular-nums">
                   {song.duration
-                    ? `${Math.floor(song.duration / 60)}:${Math.floor(song.duration % 60).toString().padStart(2, "0")}`
+                    ? `${Math.floor(song.duration / 60)}:${Math.floor(
+                        song.duration % 60,
+                      )
+                        .toString()
+                        .padStart(2, "0")}`
                     : "--:--"}
                 </span>
               </div>

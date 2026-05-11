@@ -12,7 +12,7 @@ import {
   Volume2,
   ListMusic,
 } from "lucide-react";
-import type { SongItem } from "@/src/graphql/queries/songs";
+import type { SongItem } from "@/src/features/graphql/queries/songs";
 import { formatTime } from "@/src/libs/formatTime";
 
 export default function PlayerBar({

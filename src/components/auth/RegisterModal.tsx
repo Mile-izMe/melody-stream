@@ -11,6 +11,7 @@ import {
 } from "lucide-react";
 import { motion } from "framer-motion";
 import { requestRegister } from "@/src/features/graphql/mutations/auth";
+import { notify } from "@/src/libs/toast";
 
 interface RegisterModalProps {
   isOpen: boolean;
@@ -33,19 +34,27 @@ export function RegisterModal({
 
   const validateForm = () => {
     if (!username || !email || !password || !confirmPassword) {
-      setError("All fields are required");
+      const message = "All fields are required";
+      setError(message);
+      notify.warning("Incomplete form", message);
       return false;
     }
     if (password.length < 6) {
-      setError("Password must be at least 6 characters");
+      const message = "Password must be at least 6 characters";
+      setError(message);
+      notify.warning("Weak password", message);
       return false;
     }
     if (password !== confirmPassword) {
-      setError("Passwords do not match");
+      const message = "Passwords do not match";
+      setError(message);
+      notify.warning("Password mismatch", message);
       return false;
     }
     if (!email.includes("@")) {
-      setError("Please enter a valid email");
+      const message = "Please enter a valid email";
+      setError(message);
+      notify.warning("Invalid email", message);
       return false;
     }
     return true;
@@ -64,6 +73,10 @@ export function RegisterModal({
       }
 
       setSuccess(true);
+      notify.success(
+        "Account created",
+        "Your account is ready. Redirecting to sign in...",
+      );
       setTimeout(() => {
         setUsername("");
         setEmail("");
@@ -74,7 +87,10 @@ export function RegisterModal({
         onSwitchToLogin();
       }, 1500);
     } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : "Something went wrong");
+      const message =
+        err instanceof Error ? err.message : "Something went wrong";
+      setError(message);
+      notify.error("Registration failed", message);
     } finally {
       setLoading(false);
     }

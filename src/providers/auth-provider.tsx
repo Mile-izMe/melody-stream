@@ -1,21 +1,21 @@
 "use client";
 
-import React, {
-  createContext,
-  useCallback,
-  useEffect,
-  useRef,
-  ReactNode,
-} from "react";
-import { User } from "@/src/types/user";
+import { requestRefreshToken } from "@/src/features/graphql/mutations/auth";
 import {
   decodeJwtPayload,
   getOrCreateDeviceId,
   getTokenExpiryTime,
   loadAuthSession,
 } from "@/src/libs/auth-session";
-import { requestRefreshToken } from "@/src/features/graphql/mutations/auth";
 import { useAuthStore } from "@/src/stores/use-auth-store";
+import { User } from "@/src/types/user";
+import {
+  createContext,
+  ReactNode,
+  useCallback,
+  useEffect,
+  useRef,
+} from "react";
 
 interface AuthContextType {
   user: User | null;

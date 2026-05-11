@@ -6,6 +6,7 @@ import { AuthProvider } from "./auth-provider";
 import QueryProvider from "./query-provider";
 import { LayoutWrapper } from "@/src/components/layout/layout-wrapper";
 import { ServiceWorkerRegistration } from "@/src/components/providers/service-worker-registration";
+import { Toaster } from "@/src/components/ui/sonner";
 
 export function Providers({ children }: { children: React.ReactNode }) {
   return (
@@ -14,6 +15,7 @@ export function Providers({ children }: { children: React.ReactNode }) {
         <QueryProvider>
           <ServiceWorkerRegistration />
           <LayoutWrapper>{children}</LayoutWrapper>
+          <Toaster />
         </QueryProvider>
       </AuthProvider>
     </ThemeProvider>

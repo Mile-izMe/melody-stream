@@ -1,6 +1,9 @@
 "use client";
 import { Spinner } from "@/src/components/ui/spinner";
-import { requestSongs, type SongItem } from "@/src/graphql/queries/songs";
+import {
+  requestSongs,
+  type SongItem,
+} from "@/src/features/graphql/queries/songs";
 import { attachHlsStream, resolveStreamUrl } from "@/src/services/hls";
 import { useAuth } from "@/src/stores/use-auth-store";
 import { useQuery } from "@tanstack/react-query";
@@ -10,6 +13,7 @@ import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import PlayerBar from "@/src/components/PlayerBar";
 import TrackRow from "@/src/components/TrackRow";
+import { useSongsWebSocket } from "@/src/hooks/use-songs-websocket";
 
 /* ─── Home page — unified experience for everyone ─── */
 export default function Home() {
@@ -21,6 +25,9 @@ export default function Home() {
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(0);
 
+  /* Listen for real-time songs updates via WebSocket */
+  useSongsWebSocket();
+
   /* Fetch songs — public, no auth required */
   const songsQuery = useQuery({
     queryKey: ["songs", user?.id ?? "public"],
@@ -31,7 +38,6 @@ export default function Home() {
       );
       return response.songs.data;
     },
-    refetchInterval: 5000,
   });
 
   /* HLS stream binding */

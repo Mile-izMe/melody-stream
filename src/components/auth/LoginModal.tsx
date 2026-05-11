@@ -11,6 +11,7 @@ import {
   getOrCreateDeviceId,
 } from "@/src/libs/auth-session";
 import { requestLogin } from "@/src/features/graphql/mutations/auth";
+import { notify } from "@/src/libs/toast";
 
 interface LoginModalProps {
   isOpen: boolean;
@@ -61,10 +62,14 @@ export function LoginModal({
 
       setEmail("");
       setPassword("");
+      notify.success("Signed in", "Welcome back to MelodyStream.");
       onClose();
       router.push("/");
     } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : "Something went wrong");
+      const message =
+        err instanceof Error ? err.message : "Something went wrong";
+      setError(message);
+      notify.error("Sign in failed", message);
     } finally {
       setLoading(false);
     }

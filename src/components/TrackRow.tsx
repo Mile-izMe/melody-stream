@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import { Play, Disc3, Music } from "lucide-react";
-import type { SongItem } from "@/src/graphql/queries/songs";
+import type { SongItem } from "@/src/features/graphql/queries/songs";
 
 export default function TrackRow({
   song,

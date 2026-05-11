@@ -8,6 +8,7 @@
 import { useEffect } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { wsClient } from "@/src/services/websocket-client";
+import { useAuthStore } from "@/src/stores/use-auth-store";
 
 export interface SongsUpdatePayload {
   type: "added" | "updated" | "deleted" | "bulk";
@@ -17,24 +18,32 @@ export interface SongsUpdatePayload {
 
 export function useSongsWebSocket() {
   const queryClient = useQueryClient();
+  const accessToken = useAuthStore((state) => state.accessToken);
 
   useEffect(() => {
     let unsubscribe: (() => void) | null = null;
 
     const setupWebSocket = async () => {
       try {
+        wsClient.setAuthToken(accessToken);
+
         // Only connect if not already connected
         if (!wsClient.isConnected()) {
           await wsClient.connect();
         }
 
         // Subscribe to songs updates
-        unsubscribe = wsClient.on("songs:updated", (payload) => {
+        unsubscribe = wsClient.on("songs.updated", (payload) => {
           const update = payload as SongsUpdatePayload;
           console.log("[Songs] Server notification:", update);
 
           // Invalidate the songs query to refetch
-          queryClient.invalidateQueries({ queryKey: ["songs"] });
+          queryClient.invalidateQueries({
+            predicate: (query) =>
+              Array.isArray(query.queryKey) &&
+              typeof query.queryKey[0] === "string" &&
+              query.queryKey[0].startsWith("songs"),
+          });
         });
       } catch (err) {
         console.error("[useSongsWebSocket] Failed to connect", err);
@@ -50,7 +59,7 @@ export function useSongsWebSocket() {
         unsubscribe();
       }
     };
-  }, [queryClient]);
+  }, [accessToken, queryClient]);
 }
 
 /**

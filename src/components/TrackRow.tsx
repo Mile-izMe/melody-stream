@@ -90,7 +90,7 @@ export default function TrackRow({
               e.stopPropagation();
               onEdit(song.id);
             }}
-            className="rounded-lg p-1.5 hover:bg-ms-accent/20 text-ms-accent hover:text-ms-accent-hover ms-transition"
+            className="cursor-pointer rounded-lg p-1.5 hover:bg-ms-accent/20 text-ms-accent hover:text-ms-accent-hover ms-transition"
             aria-label="Edit song"
             title="Edit"
           >

@@ -30,7 +30,14 @@ export default function RootLayout({
       suppressHydrationWarning
     >
       <body className="min-h-full flex flex-col">
-        <Providers>{children}</Providers>
+        <Providers>
+          {children}
+          {/* PlayerContainer rendered at root so player persists across navigation */}
+          <div id="ms-player-root">
+            {/* lazy client component */}
+            <script dangerouslySetInnerHTML={{ __html: "" }} />
+          </div>
+        </Providers>
       </body>
     </html>
   );

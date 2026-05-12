@@ -4,14 +4,14 @@ import {
   requestSongs,
   type SongItem,
 } from "@/src/features/graphql/queries/songs";
-import { attachHlsStream, resolveStreamUrl } from "@/src/services/hls";
+// HLS and audio now handled by PlayerContainer
 import { useAuth } from "@/src/stores/use-auth-store";
 import { useQuery } from "@tanstack/react-query";
 import { motion } from "framer-motion";
 import { Music, Upload } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { useEffect, useRef, useState } from "react";
-import PlayerBar from "@/src/components/PlayerBar";
+import {} from "react";
+import { usePlayerStore } from "@/src/stores/usePlayerStore";
 import TrackRow from "@/src/components/TrackRow";
 import { useSongsWebSocket } from "@/src/hooks/use-songs-websocket";
 import { notify } from "@/src/libs/toast";
@@ -20,11 +20,12 @@ import { notify } from "@/src/libs/toast";
 export default function Home() {
   const { user } = useAuth();
   const router = useRouter();
-  const audioRef = useRef<HTMLAudioElement | null>(null);
-  const [activeSong, setActiveSong] = useState<SongItem | null>(null);
-  const [isPlaying, setIsPlaying] = useState(false);
-  const [currentTime, setCurrentTime] = useState(0);
-  const [duration, setDuration] = useState(0);
+  const activeSong = usePlayerStore((s) => s.activeSong);
+  const setActiveSong = usePlayerStore((s) => s.setActiveSong);
+  const isPlaying = usePlayerStore((s) => s.playing);
+  const setIsPlaying = usePlayerStore((s) => s.setPlaying);
+  const setCurrentTime = usePlayerStore((s) => s.setCurrentTime);
+  const setDuration = usePlayerStore((s) => s.setDuration);
 
   /* Listen for real-time songs updates via WebSocket */
   useSongsWebSocket();
@@ -41,77 +42,21 @@ export default function Home() {
     },
   });
 
-  /* HLS stream binding */
-  useEffect(() => {
-    if (!activeSong || !audioRef.current) return;
-    const audio = audioRef.current;
-    const streamUrl = resolveStreamUrl(activeSong.audioUrl);
-    const cleanup = attachHlsStream(audio, streamUrl);
-
-    const handleTimeUpdate = () => setCurrentTime(audio.currentTime || 0);
-    const handleLoadedMetadata = () => {
-      setDuration(audio.duration || 0);
-      void audio
-        .play()
-        .then(() => setIsPlaying(true))
-        .catch(() => setIsPlaying(false));
-    };
-    const handleEnded = () => {
-      setIsPlaying(false);
-      setCurrentTime(0);
-    };
-
-    audio.addEventListener("timeupdate", handleTimeUpdate);
-    audio.addEventListener("loadedmetadata", handleLoadedMetadata);
-    audio.addEventListener("ended", handleEnded);
-    return () => {
-      audio.removeEventListener("timeupdate", handleTimeUpdate);
-      audio.removeEventListener("loadedmetadata", handleLoadedMetadata);
-      audio.removeEventListener("ended", handleEnded);
-      cleanup();
-    };
-  }, [activeSong]);
+  /* Player handled by PlayerContainer mounted in Providers; page only triggers store actions */
 
   const handleSelectSong = (song: SongItem) => {
     if (activeSong?.id === song.id) {
-      const audio = audioRef.current;
-      if (!audio) return;
-      if (isPlaying) {
-        audio.pause();
-        setIsPlaying(false);
-      } else {
-        void audio
-          .play()
-          .then(() => setIsPlaying(true))
-          .catch(() => setIsPlaying(false));
-      }
+      // toggle play state handled by PlayerContainer watching store
+      setIsPlaying(!isPlaying);
       return;
     }
     setCurrentTime(0);
     setDuration(0);
     setActiveSong(song);
+    setIsPlaying(true);
   };
 
-  const handleTogglePlay = () => {
-    const audio = audioRef.current;
-    if (!audio) return;
-    if (isPlaying) {
-      audio.pause();
-      setIsPlaying(false);
-    } else {
-      void audio
-        .play()
-        .then(() => setIsPlaying(true))
-        .catch(() => setIsPlaying(false));
-    }
-  };
-
-  const handleSeek = (p: number) => {
-    const audio = audioRef.current;
-    if (!audio || !duration) return;
-    audio.currentTime = (p / 100) * duration;
-    setCurrentTime(audio.currentTime);
-  };
+  // Player controls handled by PlayerContainer
 
   const handleEditSong = (songId: string) => {
     notify.info("Edit song", `Opening editor for song: ${songId}`);
@@ -237,18 +182,7 @@ export default function Home() {
         )}
       </div>
 
-      {/* Player bar — available to everyone */}
-      {activeSong && (
-        <PlayerBar
-          activeSong={activeSong}
-          isPlaying={isPlaying}
-          currentTime={currentTime}
-          duration={duration}
-          audioRef={audioRef}
-          onTogglePlay={handleTogglePlay}
-          onSeek={handleSeek}
-        />
-      )}
+      {/* PlayerBar moved to Providers to persist across navigation */}
     </div>
   );
 }

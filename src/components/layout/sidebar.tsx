@@ -191,7 +191,7 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
           </div>
 
           {/* User section */}
-          <div className="px-3 pb-4 mt-auto">
+          <div className="px-3 pb-25 mt-auto">
             {user ? (
               <div className="rounded-xl bg-ms-bg-elevated border border-ms-border-subtle p-3.5 space-y-3">
                 <div className="flex items-center gap-2.5">

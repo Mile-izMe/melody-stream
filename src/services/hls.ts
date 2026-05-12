@@ -17,7 +17,10 @@ export function attachHlsStream(media: HTMLMediaElement, src: string) {
   if (Hls.isSupported()) {
     const hls = new Hls({
       enableWorker: true,
-      lowLatencyMode: true,
+      maxBufferLength: 120,
+      maxMaxBufferLength: 300,
+      maxBufferSize: 50 * 1024 * 1024,
+      abrEwmaDefaultEstimate: 128000,
     });
 
     hls.loadSource(src);

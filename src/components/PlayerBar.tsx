@@ -14,6 +14,7 @@ import {
 } from "lucide-react";
 import type { SongItem } from "@/src/features/graphql/queries/songs";
 import { formatTime } from "@/src/libs/formatTime";
+import { usePlayerStore } from "@/src/stores/usePlayerStore";
 
 export default function PlayerBar({
   activeSong,
@@ -32,6 +33,8 @@ export default function PlayerBar({
   onTogglePlay: () => void;
   onSeek: (progress: number) => void;
 }) {
+  const repeatMode = usePlayerStore((s) => s.repeatMode);
+  const toggleRepeatMode = usePlayerStore((s) => s.toggleRepeatMode);
   return (
     <div className="fixed bottom-0 left-0 right-0 z-50 border-t border-ms-border-default bg-ms-bg-deep/95 backdrop-blur-lg px-4 py-3">
       <audio ref={audioRef} preload="metadata" className="hidden" />
@@ -97,10 +100,16 @@ export default function PlayerBar({
             </button>
             <button
               type="button"
-              className="hover:text-ms-text-primary ms-transition"
-              aria-label="Repeat"
+              onClick={toggleRepeatMode}
+              className={`hover:text-ms-text-primary ms-transition relative cursor-pointer ${repeatMode !== "off" ? "text-ms-accent" : ""}`}
+              aria-label={`Repeat: ${repeatMode}`}
             >
               <Repeat size={16} />
+              {repeatMode === "one" && (
+                <span className="absolute -top-1 -right-2 inline-flex items-center justify-center w-4 h-4 text-[10px] font-semibold text-white bg-ms-accent rounded-full">
+                  1
+                </span>
+              )}
             </button>
           </div>
           <div className="flex items-center gap-3 w-full max-w-3xl">

@@ -79,7 +79,7 @@ export default function PlayerBar({
             <button
               type="button"
               onClick={onTogglePlay}
-              className="size-9 rounded-full bg-ms-accent text-ms-bg-deep flex items-center justify-center hover:bg-ms-accent-hover active:scale-95 ms-transition"
+              className="size-9 rounded-full bg-ms-accent text-ms-accent-text flex items-center justify-center hover:bg-ms-accent-hover active:scale-95 ms-transition"
               aria-label={isPlaying ? "Pause" : "Play"}
             >
               {isPlaying ? (

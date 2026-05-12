@@ -145,7 +145,7 @@ export default function ToastTestPage() {
               notify.info("Info #3", "Third notification");
               notify.error("Error #4", "Fourth notification");
             }}
-            className="w-full bg-ms-accent text-ms-bg-deep font-semibold py-3 rounded-xl hover:bg-ms-accent-hover ms-transition"
+            className="w-full bg-ms-accent text-ms-accent-text font-semibold py-3 rounded-xl hover:bg-ms-accent-hover ms-transition"
           >
             Show 4 Different Toasts
           </button>

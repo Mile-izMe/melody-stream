@@ -10,10 +10,13 @@ import {
   Play,
   Heart,
   Library,
+  MoonStar,
+  SunMedium,
 } from "lucide-react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import React from "react";
+import { useTheme } from "@/src/providers/theme-provider";
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -99,6 +102,7 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
   const { user, logout } = useAuth();
   const pathname = usePathname();
   const isAuthed = Boolean(user);
+  const { isDarkMode, toggleTheme } = useTheme();
 
   return (
     <div className="flex flex-col h-screen relative z-10">
@@ -111,7 +115,7 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
             className="flex items-center gap-2.5 px-6 py-5 border-b border-ms-border-subtle"
           >
             <div className="size-7 rounded-lg bg-ms-accent flex items-center justify-center">
-              <Play size={14} className="text-ms-bg-deep ml-0.5" />
+              <Play size={14} className="text-ms-accent-text ml-0.5" />
             </div>
             <span className="text-base font-bold tracking-tight text-ms-text-primary">
               MelodyStream
@@ -123,8 +127,18 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
             <p className="px-3 mb-2 text-[10px] font-semibold uppercase tracking-[0.2em] text-ms-text-tertiary">
               Browse
             </p>
-            <NavLink href="/" icon={HomeIcon} label="Home" active={pathname === "/"} />
-            <NavLink href="/search" icon={Search} label="Search" active={pathname === "/search"} />
+            <NavLink
+              href="/"
+              icon={HomeIcon}
+              label="Home"
+              active={pathname === "/"}
+            />
+            <NavLink
+              href="/search"
+              icon={Search}
+              label="Search"
+              active={pathname === "/search"}
+            />
           </nav>
 
           {/* Your stuff — auth-gated */}
@@ -155,12 +169,33 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
             />
           </nav>
 
+          <div className="px-3 pb-4">
+            <button
+              type="button"
+              onClick={toggleTheme}
+              className="w-full flex items-center justify-between gap-3 px-3 py-2.5 rounded-lg bg-ms-bg-elevated border border-ms-border-subtle text-sm text-ms-text-secondary hover:text-ms-text-primary ms-transition"
+              aria-label={
+                isDarkMode ? "Switch to light theme" : "Switch to dark theme"
+              }
+            >
+              <span className="flex items-center gap-2 min-w-0">
+                {isDarkMode ? <SunMedium size={16} /> : <MoonStar size={16} />}
+                <span className="truncate">
+                  {isDarkMode ? "Light mode" : "Dark mode"}
+                </span>
+              </span>
+              <span className="text-[10px] font-semibold uppercase tracking-[0.18em] text-ms-text-tertiary">
+                {isDarkMode ? "Light" : "Dark"}
+              </span>
+            </button>
+          </div>
+
           {/* User section */}
           <div className="px-3 pb-4 mt-auto">
             {user ? (
               <div className="rounded-xl bg-ms-bg-elevated border border-ms-border-subtle p-3.5 space-y-3">
                 <div className="flex items-center gap-2.5">
-                  <div className="size-8 rounded-full bg-ms-accent flex items-center justify-center text-ms-bg-deep text-xs font-bold uppercase shrink-0">
+                  <div className="size-8 rounded-full bg-ms-accent flex items-center justify-center text-ms-accent-text text-xs font-bold uppercase shrink-0">
                     {user.username.substring(0, 2)}
                   </div>
                   <div className="min-w-0 flex-1">
@@ -187,7 +222,7 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
                 </p>
                 <Link
                   href="/login"
-                  className="flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg bg-ms-accent text-ms-bg-deep font-semibold text-sm hover:bg-ms-accent-hover active:scale-[0.98] ms-transition"
+                  className="flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg bg-ms-accent text-ms-accent-text font-semibold text-sm hover:bg-ms-accent-hover active:scale-[0.98] ms-transition"
                 >
                   <LogIn size={16} />
                   Sign In
@@ -203,12 +238,25 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
           <div className="sticky top-0 z-30 h-14 flex md:hidden items-center justify-between px-4 bg-ms-bg-raised/95 backdrop-blur-md border-b border-ms-border-subtle">
             <Link href="/" className="flex items-center gap-2">
               <div className="size-6 rounded bg-ms-accent flex items-center justify-center">
-                <Play size={11} className="text-ms-bg-deep ml-0.5" />
+                <Play size={11} className="text-ms-accent-text ml-0.5" />
               </div>
               <span className="text-sm font-bold">MelodyStream</span>
             </Link>
             <div className="flex items-center gap-3">
-              <Link href="/search" className="text-ms-text-secondary hover:text-ms-text-primary ms-transition">
+              <button
+                type="button"
+                onClick={toggleTheme}
+                className="text-ms-text-secondary hover:text-ms-text-primary ms-transition"
+                aria-label={
+                  isDarkMode ? "Switch to light theme" : "Switch to dark theme"
+                }
+              >
+                {isDarkMode ? <SunMedium size={18} /> : <MoonStar size={18} />}
+              </button>
+              <Link
+                href="/search"
+                className="text-ms-text-secondary hover:text-ms-text-primary ms-transition"
+              >
                 <Search size={20} />
               </Link>
               {user ? (

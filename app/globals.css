@@ -5,38 +5,39 @@
 @custom-variant dark (&:is(.dark *));
 
 /* ────────────────────────────────────────────
-   MelodyStream — Warm dark theme
-   Color strategy: Committed (warm coral accent)
-   All colors in OKLCH. No pure black or white.
-   ──────────────────────────────────────────── */
+  MelodyStream — Warm theme system
+  Color strategy: Committed (warm coral accent)
+  All colors in OKLCH. No pure black or white.
+  ──────────────────────────────────────────── */
 
 :root {
-  /* Surfaces — warm-tinted darks */
-  --ms-bg-deep: oklch(0.10 0.005 55);
-  --ms-bg-base: oklch(0.13 0.006 55);
-  --ms-bg-raised: oklch(0.17 0.008 55);
-  --ms-bg-elevated: oklch(0.21 0.009 55);
+  /* Surfaces — warm paper */
+  --ms-bg-deep: oklch(0.975 0.004 55);
+  --ms-bg-base: oklch(0.955 0.005 55);
+  --ms-bg-raised: oklch(0.925 0.006 55);
+  --ms-bg-elevated: oklch(0.89 0.007 55);
 
   /* Accent — warm coral/persimmon */
-  --ms-accent: oklch(0.70 0.18 38);
-  --ms-accent-hover: oklch(0.76 0.15 42);
-  --ms-accent-subtle: oklch(0.70 0.18 38 / 10%);
-  --ms-accent-text: oklch(0.78 0.14 40);
+  --ms-accent: oklch(0.7 0.18 38);
+  --ms-accent-hover: oklch(0.64 0.17 38);
+  --ms-accent-subtle: oklch(0.7 0.18 38 / 12%);
+  --ms-accent-text: oklch(0.18 0.006 55);
 
-  /* Text — warm off-whites */
-  --ms-text-primary: oklch(0.92 0.005 55);
-  --ms-text-secondary: oklch(0.58 0.008 55);
-  --ms-text-tertiary: oklch(0.40 0.006 55);
+  /* Text — warm charcoal */
+  --ms-text-primary: oklch(0.22 0.01 55);
+  --ms-text-secondary: oklch(0.46 0.01 55);
+  --ms-text-tertiary: oklch(0.62 0.01 55);
 
   /* Borders */
-  --ms-border-subtle: oklch(1 0 0 / 5%);
-  --ms-border-default: oklch(1 0 0 / 8%);
-  --ms-border-strong: oklch(1 0 0 / 14%);
+  --ms-border-subtle: oklch(0.22 0.01 55 / 8%);
+  --ms-border-default: oklch(0.22 0.01 55 / 12%);
+  --ms-border-strong: oklch(0.22 0.01 55 / 18%);
 
   /* Semantic */
   --ms-success: oklch(0.68 0.15 150);
   --ms-error: oklch(0.65 0.2 25);
   --ms-warning: oklch(0.75 0.15 80);
+  --ms-scrim: oklch(0.18 0.01 55 / 64%);
 
   /* Shadcn overrides — mapped to MelodyStream tokens */
   --background: var(--ms-bg-base);
@@ -46,7 +47,7 @@
   --popover: var(--ms-bg-elevated);
   --popover-foreground: var(--ms-text-primary);
   --primary: var(--ms-accent);
-  --primary-foreground: oklch(0.14 0.006 55);
+  --primary-foreground: var(--ms-accent-text);
   --secondary: var(--ms-bg-elevated);
   --secondary-foreground: var(--ms-text-primary);
   --muted: var(--ms-bg-raised);
@@ -115,18 +116,77 @@
   --color-ms-success: var(--ms-success);
   --color-ms-error: var(--ms-error);
   --color-ms-warning: var(--ms-warning);
+  --color-ms-scrim: var(--ms-scrim);
+}
+
+.dark {
+  /* Surfaces — warm dark stage */
+  --ms-bg-deep: oklch(0.1 0.005 55);
+  --ms-bg-base: oklch(0.13 0.006 55);
+  --ms-bg-raised: oklch(0.17 0.008 55);
+  --ms-bg-elevated: oklch(0.21 0.009 55);
+
+  /* Accent — warm coral/persimmon */
+  --ms-accent: oklch(0.7 0.18 38);
+  --ms-accent-hover: oklch(0.76 0.15 42);
+  --ms-accent-subtle: oklch(0.7 0.18 38 / 10%);
+  --ms-accent-text: oklch(0.18 0.006 55);
+
+  /* Text — warm off-whites */
+  --ms-text-primary: oklch(0.92 0.005 55);
+  --ms-text-secondary: oklch(0.58 0.008 55);
+  --ms-text-tertiary: oklch(0.4 0.006 55);
+
+  /* Borders */
+  --ms-border-subtle: oklch(1 0 0 / 5%);
+  --ms-border-default: oklch(1 0 0 / 8%);
+  --ms-border-strong: oklch(1 0 0 / 14%);
+
+  /* Semantic */
+  --ms-success: oklch(0.68 0.15 150);
+  --ms-error: oklch(0.65 0.2 25);
+  --ms-warning: oklch(0.75 0.15 80);
+  --ms-scrim: oklch(0.06 0.005 55 / 68%);
+
+  --background: var(--ms-bg-base);
+  --foreground: var(--ms-text-primary);
+  --card: var(--ms-bg-raised);
+  --card-foreground: var(--ms-text-primary);
+  --popover: var(--ms-bg-elevated);
+  --popover-foreground: var(--ms-text-primary);
+  --primary: var(--ms-accent);
+  --primary-foreground: var(--ms-accent-text);
+  --secondary: var(--ms-bg-elevated);
+  --secondary-foreground: var(--ms-text-primary);
+  --muted: var(--ms-bg-raised);
+  --muted-foreground: var(--ms-text-secondary);
+  --accent: var(--ms-accent-subtle);
+  --accent-foreground: var(--ms-text-primary);
+  --destructive: var(--ms-error);
+  --border: var(--ms-border-default);
+  --input: var(--ms-border-default);
+  --ring: var(--ms-accent);
+  --radius: 0.625rem;
 }
 
 /* ── Base ────────────────────────────────── */
 
 html {
+  color-scheme: light;
+}
+
+html.dark {
   color-scheme: dark;
 }
 
 body {
   background: var(--ms-bg-base);
   color: var(--ms-text-primary);
-  font-family: var(--font-geist-sans), system-ui, -apple-system, sans-serif;
+  font-family:
+    var(--font-geist-sans),
+    system-ui,
+    -apple-system,
+    sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
@@ -169,8 +229,13 @@ body {
 }
 
 @keyframes eq-pulse {
-  0%, 100% { height: 15%; }
-  50% { height: 85%; }
+  0%,
+  100% {
+    height: 15%;
+  }
+  50% {
+    height: 85%;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -222,7 +287,8 @@ input[type="range"].ms-range:focus::-webkit-slider-thumb {
 /* ── Transition utility ──────────────────── */
 
 .ms-transition {
-  transition-property: color, background-color, border-color, opacity, transform;
+  transition-property:
+    color, background-color, border-color, opacity, transform;
   transition-timing-function: cubic-bezier(0.16, 1, 0.3, 1);
   transition-duration: 200ms;
 }

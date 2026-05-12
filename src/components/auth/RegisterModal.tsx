@@ -102,7 +102,7 @@ export function RegisterModal({
   const passwordsMismatch = confirmPassword && password !== confirmPassword;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-ms-bg-deep/60 backdrop-blur-sm p-4">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-ms-scrim backdrop-blur-sm p-4">
       <motion.div
         initial={{ opacity: 0, scale: 0.96, y: 8 }}
         animate={{ opacity: 1, scale: 1, y: 0 }}
@@ -254,7 +254,7 @@ export function RegisterModal({
           <button
             type="submit"
             disabled={loading}
-            className="w-full bg-ms-accent text-ms-bg-deep font-semibold py-3 rounded-xl hover:bg-ms-accent-hover active:scale-[0.98] flex items-center justify-center gap-2 ms-transition disabled:opacity-50 mt-2"
+            className="w-full bg-ms-accent text-ms-accent-text font-semibold py-3 rounded-xl hover:bg-ms-accent-hover active:scale-[0.98] flex items-center justify-center gap-2 ms-transition disabled:opacity-50 mt-2"
           >
             {loading ? (
               <span>Creating account...</span>

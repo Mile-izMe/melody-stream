@@ -214,7 +214,7 @@ export default function TokenDebugPage() {
           <button
             onClick={handleManualRefresh}
             disabled={loading}
-            className="w-full bg-ms-accent text-ms-bg-deep font-semibold py-3 rounded-xl hover:bg-ms-accent-hover active:scale-[0.98] disabled:opacity-50 ms-transition"
+            className="w-full bg-ms-accent text-ms-accent-text font-semibold py-3 rounded-xl hover:bg-ms-accent-hover active:scale-[0.98] disabled:opacity-50 ms-transition"
           >
             {loading ? "Refreshing..." : "🔄 Manually Refresh Token"}
           </button>

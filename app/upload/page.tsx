@@ -5,16 +5,15 @@ import { useRouter } from "next/navigation";
 import { useAuth } from "@/src/stores/use-auth-store";
 import { requestSongPresignUrl } from "@/src/features/graphql/mutations/song/song-presign-url";
 import { requestSongSaveMetadata } from "@/src/features/graphql/mutations/song/song-save-metadata";
+import { notify } from "@/src/libs/toast";
 import {
   Upload as UploadIcon,
   Music,
   CheckCircle,
-  AlertCircle,
   X,
   Headphones,
   ArrowLeft,
 } from "lucide-react";
-import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
 
 export default function UploadPage() {
@@ -25,8 +24,6 @@ export default function UploadPage() {
   const [artist, setArtist] = useState("");
   const [file, setFile] = useState<File | null>(null);
   const [uploading, setUploading] = useState(false);
-  const [success, setSuccess] = useState(false);
-  const [error, setError] = useState("");
   const [dragOver, setDragOver] = useState(false);
 
   useEffect(() => {
@@ -38,10 +35,12 @@ export default function UploadPage() {
       const selectedFile = e.target.files[0];
       if (selectedFile.type.startsWith("audio/")) {
         setFile(selectedFile);
-        setError("");
       } else {
-        setError("Please select an audio file (MP3, WAV, etc.)");
         setFile(null);
+        notify.error(
+          "Invalid file",
+          "Please select an audio file (MP3, WAV, etc.)",
+        );
       }
     }
   };
@@ -52,9 +51,8 @@ export default function UploadPage() {
     const droppedFile = e.dataTransfer.files?.[0];
     if (droppedFile?.type.startsWith("audio/")) {
       setFile(droppedFile);
-      setError("");
     } else {
-      setError("Please drop an audio file");
+      notify.error("Invalid file", "Please drop an audio file");
     }
   };
 
@@ -63,7 +61,6 @@ export default function UploadPage() {
     if (!file || !user) return;
 
     setUploading(true);
-    setError("");
 
     try {
       const presignResponse = await requestSongPresignUrl(
@@ -91,10 +88,11 @@ export default function UploadPage() {
         user.token,
       );
 
-      setSuccess(true);
+      notify.success("Track uploaded", "Processing HLS stream...");
       setTimeout(() => router.push("/"), 2000);
     } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : "Upload failed");
+      const message = err instanceof Error ? err.message : "Upload failed";
+      notify.error("Upload failed", message);
     } finally {
       setUploading(false);
     }
@@ -111,9 +109,7 @@ export default function UploadPage() {
           <ArrowLeft size={14} />
           Back to Library
         </Link>
-        <h1 className="text-2xl font-bold tracking-tight mb-1">
-          Upload Track
-        </h1>
+        <h1 className="text-2xl font-bold tracking-tight mb-1">Upload Track</h1>
         <p className="text-sm text-ms-text-secondary">
           Add a new track to your MelodyStream library.
         </p>
@@ -150,7 +146,7 @@ export default function UploadPage() {
           <div
             className={`size-14 rounded-xl flex items-center justify-center mb-4 ms-transition ${
               file
-                ? "bg-ms-accent text-ms-bg-deep"
+                ? "bg-ms-accent text-ms-accent-text"
                 : "bg-ms-bg-elevated text-ms-text-tertiary"
             }`}
           >
@@ -160,9 +156,7 @@ export default function UploadPage() {
           <p className="text-sm font-medium text-ms-text-primary mb-1">
             {file ? file.name : "Drop an audio file here, or click to browse"}
           </p>
-          <p className="text-xs text-ms-text-tertiary">
-            MP3, WAV, or AAC
-          </p>
+          <p className="text-xs text-ms-text-tertiary">MP3, WAV, or AAC</p>
 
           {file && (
             <button
@@ -233,7 +227,7 @@ export default function UploadPage() {
         <button
           type="submit"
           disabled={uploading || !file}
-          className="w-full bg-ms-accent text-ms-bg-deep font-semibold py-3.5 rounded-xl hover:bg-ms-accent-hover active:scale-[0.98] disabled:opacity-30 disabled:active:scale-100 flex items-center justify-center gap-2 ms-transition"
+          className="w-full bg-ms-accent text-ms-accent-text font-semibold py-3.5 rounded-xl hover:bg-ms-accent-hover active:scale-[0.98] disabled:opacity-30 disabled:active:scale-100 flex items-center justify-center gap-2 ms-transition"
         >
           {uploading ? (
             <>
@@ -248,34 +242,6 @@ export default function UploadPage() {
           )}
         </button>
       </form>
-
-      {/* Toast notifications */}
-      <AnimatePresence>
-        {success && (
-          <motion.div
-            initial={{ opacity: 0, y: 40 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: 40 }}
-            transition={{ ease: [0.16, 1, 0.3, 1] }}
-            className="fixed bottom-28 left-1/2 -translate-x-1/2 bg-ms-bg-elevated text-ms-text-primary font-medium px-6 py-3.5 rounded-xl shadow-2xl border border-ms-border-default flex items-center gap-3 z-[60]"
-          >
-            <CheckCircle size={18} className="text-ms-success shrink-0" />
-            <span className="text-sm">Track uploaded. Processing HLS stream...</span>
-          </motion.div>
-        )}
-        {error && (
-          <motion.div
-            initial={{ opacity: 0, y: 40 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: 40 }}
-            transition={{ ease: [0.16, 1, 0.3, 1] }}
-            className="fixed bottom-28 left-1/2 -translate-x-1/2 bg-ms-error text-ms-text-primary font-medium px-6 py-3.5 rounded-xl shadow-2xl flex items-center gap-3 z-[60]"
-          >
-            <AlertCircle size={18} className="shrink-0" />
-            <span className="text-sm">{error}</span>
-          </motion.div>
-        )}
-      </AnimatePresence>
     </div>
   );
 }

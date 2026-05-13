@@ -9,12 +9,18 @@ import {
   Shuffle,
   Repeat,
   Disc3,
-  Volume2,
-  ListMusic,
+  Plus,
+  Check,
 } from "lucide-react";
 import type { SongItem } from "@/src/features/graphql/queries/songs";
 import { formatTime } from "@/src/libs/formatTime";
 import { usePlayerStore } from "@/src/stores/usePlayerStore";
+import { useAuth } from "@/src/stores/use-auth-store";
+import { useRouter } from "next/navigation";
+import { useState } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { requestMyPlaylistsWithSongs } from "@/src/features/graphql";
+import { PlaylistPickerModal } from "@/src/components/playlists/playlist-picker-modal";
 
 export default function PlayerBar({
   activeSong,
@@ -33,8 +39,49 @@ export default function PlayerBar({
   onTogglePlay: () => void;
   onSeek: (progress: number) => void;
 }) {
+  const { user } = useAuth();
+  const router = useRouter();
   const repeatMode = usePlayerStore((s) => s.repeatMode);
   const toggleRepeatMode = usePlayerStore((s) => s.toggleRepeatMode);
+  const [isPlaylistPickerOpen, setIsPlaylistPickerOpen] = useState(false);
+
+  const token = user?.token;
+
+  const playlistsQuery = useQuery({
+    queryKey: ["my-playlists-with-songs", user?.id ?? "guest"],
+    queryFn: async () => {
+      const response = await requestMyPlaylistsWithSongs(
+        {
+          filters: {
+            pageNumber: 1,
+            limit: 50,
+            sorts: [{ by: "createdAt", order: "DESC" }],
+          },
+        },
+        token,
+      );
+      return response.myPlaylists.data.data;
+    },
+    enabled: Boolean(token),
+  });
+
+  const isSongInAnyPlaylist = playlistsQuery.data?.some((playlist) =>
+    playlist.songs.some((song) => song.id === activeSong.id),
+  );
+
+  const handleOpenPlaylistPicker = () => {
+    if (!user) {
+      router.push("/login");
+      return;
+    }
+
+    setIsPlaylistPickerOpen(true);
+  };
+
+  const handleClosePlaylistPicker = () => {
+    setIsPlaylistPickerOpen(false);
+  };
+
   return (
     <div className="fixed bottom-0 left-0 right-0 z-50 border-t border-ms-border-default bg-ms-bg-deep/95 backdrop-blur-lg px-4 py-3">
       <audio ref={audioRef} preload="metadata" className="hidden" />
@@ -53,18 +100,34 @@ export default function PlayerBar({
               <Disc3 size={18} className="text-ms-accent" />
             </div>
           )}
-          <div className="min-w-0">
-            <p className="text-sm font-medium truncate leading-tight">
-              {activeSong.title}
-            </p>
-            <p className="text-xs text-ms-text-secondary truncate">
-              {activeSong.artist}
-            </p>
+          <div className="flex-1 min-w-0 flex items-center gap-3">
+            <div className="flex flex-col min-w-0 flex-1">
+              <p className="text-sm font-medium truncate leading-tight">
+                {activeSong.title}
+              </p>
+              <p className="text-xs text-ms-text-secondary truncate">
+                {activeSong.artist}
+              </p>
+            </div>
+            <button
+              type="button"
+              onClick={handleOpenPlaylistPicker}
+              className="ml-auto cursor-pointer shrink-0 inline-flex size-8 items-center justify-center rounded-full border border-ms-border-subtle bg-ms-bg-elevated text-ms-text-secondary hover:border-ms-border-default hover:text-ms-text-primary ms-transition"
+              aria-label={
+                isSongInAnyPlaylist ? "Already in playlist" : "Add to playlist"
+              }
+            >
+              {isSongInAnyPlaylist ? (
+                <Check size={14} className="text-ms-accent" />
+              ) : (
+                <Plus size={14} />
+              )}
+            </button>
           </div>
         </div>
 
         <div className="flex-1 flex flex-col items-center gap-1.5">
-          <div className="flex items-center gap-5 text-ms-text-secondary">
+          <div className="flex flex-wrap items-center justify-center gap-3 text-ms-text-secondary">
             <button
               type="button"
               className="cursor-pointer hover:text-ms-text-primary ms-transition"
@@ -139,23 +202,14 @@ export default function PlayerBar({
           </div>
         </div>
 
-        <div className="hidden md:flex items-center justify-end gap-3 md:w-1/4 text-ms-text-secondary">
-          <button
-            type="button"
-            className="hover:text-ms-text-primary ms-transition"
-            aria-label="Volume"
-          >
-            <Volume2 size={16} />
-          </button>
-          <button
-            type="button"
-            className="hover:text-ms-text-primary ms-transition"
-            aria-label="Queue"
-          >
-            <ListMusic size={16} />
-          </button>
-        </div>
+        <div className="hidden md:flex items-center justify-end gap-3 md:w-1/4 text-ms-text-secondary" />
       </div>
+
+      <PlaylistPickerModal
+        isOpen={isPlaylistPickerOpen}
+        onClose={handleClosePlaylistPicker}
+        song={activeSong}
+      />
     </div>
   );
 }

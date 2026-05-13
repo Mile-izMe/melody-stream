@@ -24,7 +24,7 @@ export const SONGS_QUERY = /* GraphQL */ `
 
 export interface SongsRequestSortInput {
   by: "title" | "createdAt" | "updatedAt";
-  order: "asc" | "desc";
+  order: "ASC" | "DESC";
 }
 
 export interface SongsRequestPaginationFiltersInput {

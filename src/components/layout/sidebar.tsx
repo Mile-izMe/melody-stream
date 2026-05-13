@@ -8,7 +8,6 @@ import {
   Upload as UploadIcon,
   Search,
   Play,
-  Heart,
   Library,
   MoonStar,
   SunMedium,
@@ -158,13 +157,6 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
               icon={Library}
               label="Library"
               active={pathname === "/library"}
-              isAuthed={isAuthed}
-            />
-            <AuthGatedLink
-              href="/liked"
-              icon={Heart}
-              label="Liked Songs"
-              active={pathname === "/liked"}
               isAuthed={isAuthed}
             />
           </nav>

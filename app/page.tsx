@@ -172,7 +172,7 @@ export default function Home() {
               <button
                 type="button"
                 onClick={() => router.push("/upload")}
-                className="inline-flex items-center gap-2 px-6 py-3 bg-ms-accent text-ms-accent-text font-semibold text-sm rounded-lg hover:bg-ms-accent-hover active:scale-[0.98] ms-transition"
+                className="cursor-pointer inline-flex items-center gap-2 px-6 py-3 bg-ms-accent text-ms-accent-text font-semibold text-sm rounded-lg hover:bg-ms-accent-hover active:scale-[0.98] ms-transition"
               >
                 <Upload size={15} />
                 Upload Your First Track

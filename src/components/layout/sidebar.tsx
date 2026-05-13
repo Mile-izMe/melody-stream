@@ -102,7 +102,7 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
   const { user, logout } = useAuth();
   const pathname = usePathname();
   const isAuthed = Boolean(user);
-  const { isDarkMode, toggleTheme } = useTheme();
+  const { toggleTheme } = useTheme();
 
   return (
     <div className="flex flex-col h-screen relative z-10">
@@ -173,19 +173,17 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
             <button
               type="button"
               onClick={toggleTheme}
-              className="w-full flex items-center justify-between gap-3 px-3 py-2.5 rounded-lg bg-ms-bg-elevated border border-ms-border-subtle text-sm text-ms-text-secondary hover:text-ms-text-primary ms-transition"
-              aria-label={
-                isDarkMode ? "Switch to light theme" : "Switch to dark theme"
-              }
+              className="cursor-pointer w-full flex items-center justify-between gap-3 px-3 py-2.5 rounded-lg bg-ms-bg-elevated border border-ms-border-subtle text-sm text-ms-text-secondary hover:text-ms-text-primary ms-transition"
+              aria-label="Toggle theme"
             >
               <span className="flex items-center gap-2 min-w-0">
-                {isDarkMode ? <SunMedium size={16} /> : <MoonStar size={16} />}
-                <span className="truncate">
-                  {isDarkMode ? "Light mode" : "Dark mode"}
-                </span>
+                <MoonStar size={16} className="block dark:hidden" />
+                <SunMedium size={16} className="hidden dark:block" />
+                <span className="truncate">Theme</span>
               </span>
               <span className="text-[10px] font-semibold uppercase tracking-[0.18em] text-ms-text-tertiary">
-                {isDarkMode ? "Light" : "Dark"}
+                <span className="dark:hidden">Dark</span>
+                <span className="hidden dark:inline">Light</span>
               </span>
             </button>
           </div>
@@ -247,11 +245,10 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
                 type="button"
                 onClick={toggleTheme}
                 className="text-ms-text-secondary hover:text-ms-text-primary ms-transition"
-                aria-label={
-                  isDarkMode ? "Switch to light theme" : "Switch to dark theme"
-                }
+                aria-label="Toggle theme"
               >
-                {isDarkMode ? <SunMedium size={18} /> : <MoonStar size={18} />}
+                <MoonStar size={18} className="block dark:hidden" />
+                <SunMedium size={18} className="hidden dark:block" />
               </button>
               <Link
                 href="/search"

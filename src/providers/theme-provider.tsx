@@ -18,7 +18,6 @@ const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 
 function ThemeBridge({ children }: { children: React.ReactNode }) {
   const { theme, setTheme, resolvedTheme } = useNextTheme();
-
   const activeTheme = (resolvedTheme || theme || "dark") as Theme;
 
   const value = useMemo(

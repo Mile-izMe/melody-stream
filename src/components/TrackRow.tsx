@@ -19,10 +19,19 @@ export default function TrackRow({
   onSelect: () => void;
   onEdit?: (songId: string) => void;
 }) {
+  const handleKeyDown = (event: React.KeyboardEvent<HTMLDivElement>) => {
+    if (event.key === "Enter" || event.key === " ") {
+      event.preventDefault();
+      onSelect();
+    }
+  };
+
   return (
-    <button
-      type="button"
+    <div
+      role="button"
+      tabIndex={0}
       onClick={onSelect}
+      onKeyDown={handleKeyDown}
       className={`
         w-full grid grid-cols-[2rem_1fr_5rem] sm:grid-cols-[2.5rem_2fr_1fr_5rem]
         gap-4 px-5 py-3 items-center text-left group ms-transition
@@ -107,6 +116,6 @@ export default function TrackRow({
             : "--:--"}
         </span>
       </span>
-    </button>
+    </div>
   );
 }

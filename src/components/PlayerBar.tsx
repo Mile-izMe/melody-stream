@@ -67,14 +67,14 @@ export default function PlayerBar({
           <div className="flex items-center gap-5 text-ms-text-secondary">
             <button
               type="button"
-              className="hover:text-ms-text-primary ms-transition"
+              className="cursor-pointer hover:text-ms-text-primary ms-transition"
               aria-label="Shuffle"
             >
               <Shuffle size={16} />
             </button>
             <button
               type="button"
-              className="hover:text-ms-text-primary ms-transition"
+              className="cursor-pointer hover:text-ms-text-primary ms-transition"
               aria-label="Previous"
             >
               <SkipBack size={18} />
@@ -82,7 +82,7 @@ export default function PlayerBar({
             <button
               type="button"
               onClick={onTogglePlay}
-              className="size-9 rounded-full bg-ms-accent text-ms-accent-text flex items-center justify-center hover:bg-ms-accent-hover active:scale-95 ms-transition"
+              className="cursor-pointer size-9 rounded-full bg-ms-accent text-ms-accent-text flex items-center justify-center hover:bg-ms-accent-hover active:scale-95 ms-transition"
               aria-label={isPlaying ? "Pause" : "Play"}
             >
               {isPlaying ? (
@@ -93,7 +93,7 @@ export default function PlayerBar({
             </button>
             <button
               type="button"
-              className="hover:text-ms-text-primary ms-transition"
+              className="cursor-pointer hover:text-ms-text-primary ms-transition"
               aria-label="Next"
             >
               <SkipForward size={18} />

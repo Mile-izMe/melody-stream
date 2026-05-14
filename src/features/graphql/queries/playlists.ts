@@ -107,3 +107,65 @@ export async function requestMyPlaylistsWithSongs(
     { request: GetMyPlaylistsRequestInput }
   >(MY_PLAYLISTS_WITH_SONGS_QUERY, { request }, token);
 }
+
+export const PLAYLIST_SONGS_QUERY = /* GraphQL */ `
+  query PlaylistSongs($request: GetPlaylistSongsRequest!) {
+    playlistSongs(request: $request) {
+      data {
+        playlist {
+          id
+          name
+          songCount
+          createdAt
+          updatedAt
+        }
+        songs {
+          id
+          title
+          artist
+          audioUrl
+          thumbnailUrl
+          duration
+          createdAt
+          updatedAt
+          isEditable
+        }
+      }
+    }
+  }
+`;
+
+export interface GetPlaylistSongsRequestInput {
+  playlistId: string;
+}
+
+export interface PlaylistSongsData {
+  playlist: PlaylistItem;
+  songs: Array<{
+    id: string;
+    title: string;
+    artist: string;
+    audioUrl: string;
+    thumbnailUrl?: string | null;
+    duration?: number | null;
+    createdAt: string;
+    updatedAt: string;
+    isEditable: boolean;
+  }>;
+}
+
+export interface PlaylistSongsResponse {
+  playlistSongs: {
+    data?: PlaylistSongsData | null;
+  };
+}
+
+export async function requestPlaylistSongs(
+  request: GetPlaylistSongsRequestInput,
+  token?: string,
+) {
+  return requestGraphQL<
+    PlaylistSongsResponse,
+    { request: GetPlaylistSongsRequestInput }
+  >(PLAYLIST_SONGS_QUERY, { request }, token);
+}

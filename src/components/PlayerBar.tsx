@@ -43,6 +43,10 @@ export default function PlayerBar({
   const router = useRouter();
   const repeatMode = usePlayerStore((s) => s.repeatMode);
   const toggleRepeatMode = usePlayerStore((s) => s.toggleRepeatMode);
+  const shuffleMode = usePlayerStore((s) => s.shuffleMode);
+  const toggleShuffleMode = usePlayerStore((s) => s.toggleShuffleMode);
+  const playNext = usePlayerStore((s) => s.playNext);
+  const playPrevious = usePlayerStore((s) => s.playPrevious);
   const [isPlaylistPickerOpen, setIsPlaylistPickerOpen] = useState(false);
 
   const token = user?.token;
@@ -130,13 +134,19 @@ export default function PlayerBar({
           <div className="flex flex-wrap items-center justify-center gap-3 text-ms-text-secondary">
             <button
               type="button"
-              className="cursor-pointer hover:text-ms-text-primary ms-transition"
+              onClick={toggleShuffleMode}
+              className={`cursor-pointer ms-transition ${
+                shuffleMode
+                  ? "text-ms-accent bg-ms-accent/10 rounded-full p-1"
+                  : "hover:text-ms-text-primary"
+              }`}
               aria-label="Shuffle"
             >
               <Shuffle size={16} />
             </button>
             <button
               type="button"
+              onClick={playPrevious}
               className="cursor-pointer hover:text-ms-text-primary ms-transition"
               aria-label="Previous"
             >
@@ -156,6 +166,7 @@ export default function PlayerBar({
             </button>
             <button
               type="button"
+              onClick={playNext}
               className="cursor-pointer hover:text-ms-text-primary ms-transition"
               aria-label="Next"
             >

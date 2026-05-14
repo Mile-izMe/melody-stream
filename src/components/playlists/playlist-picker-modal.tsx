@@ -197,7 +197,10 @@ export function PlaylistPickerModal({
                   Loading playlists...
                 </div>
               ) : playlists.length > 0 ? (
-                <div className="grid gap-2 max-h-56 overflow-y-auto pr-1">
+                <div
+                  cursor-pointer
+                  className="grid gap-2 max-h-56 overflow-y-auto pr-1"
+                >
                   {playlists.map((playlist) => {
                     const isSelected = playlist.id === selectedPlaylistId;
 
@@ -208,7 +211,7 @@ export function PlaylistPickerModal({
                         onClick={() => setSelectedPlaylistId(playlist.id)}
                         className={`flex items-center justify-between gap-4 rounded-xl border px-4 py-3 text-left ms-transition ${
                           isSelected
-                            ? "border-ms-accent bg-ms-accent-subtle"
+                            ? "cursor-pointer border-ms-accent bg-ms-accent-subtle"
                             : "border-ms-border-subtle bg-ms-bg-elevated hover:border-ms-border-default hover:bg-ms-bg-elevated/80"
                         }`}
                       >
@@ -256,7 +259,7 @@ export function PlaylistPickerModal({
 
                   addExistingPlaylistMutation.mutate(selectedPlaylist.id);
                 }}
-                className="inline-flex items-center gap-2 rounded-lg bg-ms-accent px-4 py-2.5 text-sm font-semibold text-ms-accent-text hover:bg-ms-accent-hover disabled:cursor-not-allowed disabled:opacity-50 ms-transition"
+                className="cursor-pointer inline-flex items-center gap-2 rounded-lg bg-ms-accent px-4 py-2.5 text-sm font-semibold text-ms-accent-text hover:bg-ms-accent-hover disabled:cursor-not-allowed disabled:opacity-50 ms-transition"
               >
                 <Plus size={16} />
                 Add to selected playlist
@@ -292,7 +295,7 @@ export function PlaylistPickerModal({
 
                     createPlaylistMutation.mutate(name);
                   }}
-                  className="inline-flex items-center justify-center gap-2 rounded-xl bg-ms-bg-raised px-4 py-3 text-sm font-semibold text-ms-text-primary border border-ms-border-subtle hover:bg-ms-bg-elevated disabled:cursor-not-allowed disabled:opacity-50 ms-transition"
+                  className="cursor-pointer inline-flex items-center justify-center gap-2 rounded-xl bg-ms-bg-raised px-4 py-3 text-sm font-semibold text-ms-text-primary border border-ms-border-subtle hover:bg-ms-bg-elevated disabled:cursor-not-allowed disabled:opacity-50 ms-transition"
                 >
                   {createPlaylistMutation.isPending
                     ? "Creating..."

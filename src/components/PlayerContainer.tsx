@@ -42,7 +42,9 @@ export default function PlayerContainer() {
         .catch(() => setPlaying(false));
     };
     const handleEnded = () => {
-      const repeatMode = usePlayerStore.getState().repeatMode;
+      const state = usePlayerStore.getState();
+      const repeatMode = state.repeatMode;
+
       if (repeatMode === "one") {
         try {
           audio.currentTime = 0;
@@ -53,6 +55,12 @@ export default function PlayerContainer() {
         } catch {
           setPlaying(false);
         }
+        return;
+      }
+
+      // If there's a queue, play the next song
+      if (state.queue.length > 0) {
+        state.playNext();
         return;
       }
 

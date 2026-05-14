@@ -14,6 +14,7 @@ import {
 import Link from "next/link";
 import { useAuth } from "@/src/stores/use-auth-store";
 import { Spinner } from "@/src/components/ui/spinner";
+import { PlaylistDetailsModal } from "@/src/components/playlists/playlist-details-modal";
 import {
   requestMyPlaylists,
   requestCreatePlaylist,
@@ -25,6 +26,10 @@ export default function LibraryPage() {
   const { user } = useAuth();
   const queryClient = useQueryClient();
   const [playlistName, setPlaylistName] = useState("");
+  const [selectedPlaylistId, setSelectedPlaylistId] = useState<string | null>(
+    null,
+  );
+  const [isDetailsModalOpen, setIsDetailsModalOpen] = useState(false);
 
   const playlistsQuery = useQuery({
     queryKey: ["my-playlists", user?.id ?? "guest"],
@@ -86,6 +91,11 @@ export default function LibraryPage() {
     }
 
     createPlaylistMutation.mutate(name);
+  };
+
+  const handlePlaylistClick = (playlistId: string) => {
+    setSelectedPlaylistId(playlistId);
+    setIsDetailsModalOpen(true);
   };
 
   if (!user) {
@@ -195,7 +205,8 @@ export default function LibraryPage() {
                 key={playlist.id}
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
-                className="rounded-2xl border border-ms-border-subtle bg-ms-bg-raised p-5 shadow-sm"
+                onClick={() => handlePlaylistClick(playlist.id)}
+                className="rounded-2xl border border-ms-border-subtle bg-ms-bg-raised p-5 shadow-sm cursor-pointer hover:border-ms-accent hover:shadow-md hover:bg-ms-bg-elevated ms-transition"
               >
                 <div className="flex items-start justify-between gap-4">
                   <div className="min-w-0">
@@ -253,6 +264,12 @@ export default function LibraryPage() {
           </motion.div>
         )}
       </div>
+
+      <PlaylistDetailsModal
+        isOpen={isDetailsModalOpen}
+        onClose={() => setIsDetailsModalOpen(false)}
+        playlistId={selectedPlaylistId || ""}
+      />
     </div>
   );
 }

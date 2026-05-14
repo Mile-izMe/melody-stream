@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
 import { Plus } from "lucide-react";
@@ -43,7 +44,7 @@ export default function AssignRolePanel({
         <select
           value={selectedRoleId}
           onChange={(event) => setSelectedRoleId(event.target.value)}
-          className="w-full rounded-xl border border-ms-border-default bg-ms-bg-elevated px-4 py-3 text-sm outline-none focus:border-ms-accent"
+          className="cursor-pointer w-full rounded-xl border border-ms-border-default bg-ms-bg-elevated px-4 py-3 text-sm outline-none focus:border-ms-accent"
         >
           <option value="">Select role</option>
           {roles?.map((role) => (
@@ -56,7 +57,7 @@ export default function AssignRolePanel({
         <select
           value={selectedPermissionId}
           onChange={(event) => setSelectedPermissionId(event.target.value)}
-          className="w-full rounded-xl border border-ms-border-default bg-ms-bg-elevated px-4 py-3 text-sm outline-none focus:border-ms-accent"
+          className="cursor-pointer w-full rounded-xl border border-ms-border-default bg-ms-bg-elevated px-4 py-3 text-sm outline-none focus:border-ms-accent"
         >
           <option value="">Select permission</option>
           {availablePermissions.map((permission) => (
@@ -69,7 +70,7 @@ export default function AssignRolePanel({
         <button
           type="submit"
           disabled={!canAssignPermission}
-          className="inline-flex items-center gap-2 rounded-xl bg-ms-accent px-4 py-3 text-sm font-semibold text-ms-accent-text hover:bg-ms-accent-hover disabled:opacity-50 ms-transition"
+          className="cursor-pointer inline-flex items-center gap-2 rounded-xl bg-ms-accent px-4 py-3 text-sm font-semibold text-ms-accent-text hover:bg-ms-accent-hover disabled:opacity-50 ms-transition"
         >
           <Plus size={16} />
           Assign

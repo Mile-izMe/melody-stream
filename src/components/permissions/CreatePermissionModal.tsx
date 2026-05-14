@@ -45,7 +45,7 @@ export default function CreatePermissionModal({
           <button
             type="button"
             onClick={onClose}
-            className="rounded-full p-2 text-ms-text-tertiary hover:text-ms-text-primary hover:bg-ms-bg-elevated ms-transition"
+            className="cursor-pointer rounded-full p-2 text-ms-text-tertiary hover:text-ms-text-primary hover:bg-ms-bg-elevated ms-transition"
             aria-label="Close"
           >
             <svg
@@ -78,14 +78,14 @@ export default function CreatePermissionModal({
             <button
               type="button"
               onClick={onClose}
-              className="rounded-lg px-4 py-2 text-sm font-semibold text-ms-text-primary bg-ms-bg-elevated border border-ms-border-subtle ms-transition"
+              className="cursor-pointer rounded-lg px-4 py-2 text-sm font-semibold text-ms-text-primary bg-ms-bg-elevated border border-ms-border-subtle ms-transition"
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={!canCreatePermission}
-              className="inline-flex items-center gap-2 rounded-xl bg-ms-accent px-4 py-2 text-sm font-semibold text-ms-accent-text hover:bg-ms-accent-hover disabled:opacity-50 ms-transition"
+              className="cursor-pointer inline-flex items-center gap-2 rounded-xl bg-ms-accent px-4 py-2 text-sm font-semibold text-ms-accent-text hover:bg-ms-accent-hover disabled:opacity-50 ms-transition"
             >
               <Plus size={14} />
               Create

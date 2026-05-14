@@ -32,7 +32,7 @@ export default function AllPermissionsPanel({
           <button
             type="button"
             onClick={onOpenCreateModal}
-            className="inline-flex items-center gap-2 rounded-xl bg-ms-accent px-4 py-2 text-sm font-semibold text-ms-accent-text hover:bg-ms-accent-hover ms-transition"
+            className="cursor-pointer inline-flex items-center gap-2 rounded-xl bg-ms-accent px-4 py-2 text-sm font-semibold text-ms-accent-text hover:bg-ms-accent-hover ms-transition"
           >
             <Plus size={14} />
             Create permission

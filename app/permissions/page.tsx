@@ -246,7 +246,7 @@ export default function PermissionsPage() {
         <div className="flex items-center gap-3">
           <button
             onClick={() => setActiveTab("all")}
-            className={`rounded-xl px-4 py-2 text-sm font-semibold ms-transition ${
+            className={`cursor-pointer rounded-xl px-4 py-2 text-sm font-semibold ms-transition ${
               activeTab === "all"
                 ? "bg-ms-accent text-ms-accent-text"
                 : "bg-ms-bg-elevated text-ms-text-primary"
@@ -256,7 +256,7 @@ export default function PermissionsPage() {
           </button>
           <button
             onClick={() => setActiveTab("users")}
-            className={`rounded-xl px-4 py-2 text-sm font-semibold ms-transition ${
+            className={`cursor-pointer rounded-xl px-4 py-2 text-sm font-semibold ms-transition ${
               activeTab === "users"
                 ? "bg-ms-accent text-ms-accent-text"
                 : "bg-ms-bg-elevated text-ms-text-primary"

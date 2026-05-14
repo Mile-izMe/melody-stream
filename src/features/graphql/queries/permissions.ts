@@ -71,6 +71,21 @@ export const PERMISSIONS_QUERY = /* GraphQL */ `
   }
 `;
 
+export const PERMISSIONS_BY_ROLE_QUERY = /* GraphQL */ `
+  query PermissionsByRoleId($roleId: String!) {
+    permissionsByRoleId(roleId: $roleId) {
+      data {
+        permissions {
+          id
+          name
+          createdAt
+          updatedAt
+        }
+      }
+    }
+  }
+`;
+
 export interface RolesResponse {
   roles: {
     data: {
@@ -107,10 +122,26 @@ export interface PermissionsResponse {
   };
 }
 
+export interface PermissionsByRoleResponse {
+  permissionsByRole: {
+    data: {
+      permissions: PermissionItem[];
+    } | null;
+  };
+}
+
 export async function requestPermissions(token?: string) {
   return requestGraphQL<PermissionsResponse>(
     PERMISSIONS_QUERY,
     undefined,
+    token,
+  );
+}
+
+export async function requestPermissionsByRole(roleId: string, token?: string) {
+  return requestGraphQL<PermissionsByRoleResponse, { roleId: string }>(
+    PERMISSIONS_BY_ROLE_QUERY,
+    { roleId },
     token,
   );
 }

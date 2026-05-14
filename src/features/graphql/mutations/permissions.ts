@@ -5,8 +5,10 @@ export interface CreatePermissionRequestInput {
 }
 
 export interface CreateRolePermissionRequestInput {
-  roleId: string;
-  permissionId: string;
+  roleId?: string;
+  roleIds?: string[];
+  permissionId?: string;
+  permissionIds?: string[];
 }
 
 export interface MutationPermissionItem {
@@ -53,7 +55,7 @@ export const CREATE_ROLE_PERMISSION_MUTATION = /* GraphQL */ `
       success
       message
       data {
-        rolePermission {
+        rolePermissions {
           roleId
           permissionId
           role {
@@ -89,7 +91,7 @@ export interface CreateRolePermissionResponse {
     success: boolean;
     message: string;
     data: {
-      rolePermission: MutationRolePermissionItem;
+      rolePermissions: MutationRolePermissionItem[];
     } | null;
   };
 }
@@ -108,8 +110,28 @@ export async function requestCreateRolePermission(
   request: CreateRolePermissionRequestInput,
   token?: string,
 ) {
+  const normalizedRoleIds =
+    request.roleIds ?? (request.roleId ? [request.roleId] : []);
+  const normalizedPermissionIds =
+    request.permissionIds ??
+    (request.permissionId ? [request.permissionId] : []);
+
   return requestGraphQL<
     CreateRolePermissionResponse,
-    { request: CreateRolePermissionRequestInput }
-  >(CREATE_ROLE_PERMISSION_MUTATION, { request }, token);
+    {
+      request: {
+        roleIds: string[];
+        permissionIds: string[];
+      };
+    }
+  >(
+    CREATE_ROLE_PERMISSION_MUTATION,
+    {
+      request: {
+        roleIds: normalizedRoleIds,
+        permissionIds: normalizedPermissionIds,
+      },
+    },
+    token,
+  );
 }

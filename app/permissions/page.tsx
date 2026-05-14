@@ -13,6 +13,7 @@ import {
   requestCreatePermission,
   requestCreateRolePermission,
   requestPermissions,
+  requestPermissionsByRole,
 } from "@/src/features/graphql";
 import AllPermissionsPanel from "@/src/components/permissions/AllPermissionsPanel";
 import AssignRolePanel from "@/src/components/permissions/AssignRolePanel";
@@ -26,7 +27,12 @@ export default function PermissionsPage() {
   const queryClient = useQueryClient();
   const [permissionName, setPermissionName] = useState("");
   const [selectedRoleId, setSelectedRoleId] = useState("");
-  const [selectedPermissionId, setSelectedPermissionId] = useState("");
+  const [selectedPermissionIds, setSelectedPermissionIds] = useState<string[]>(
+    [],
+  );
+  const [roleAssignedPermissionIds, setRoleAssignedPermissionIds] = useState<
+    Record<string, string[]>
+  >({});
   const [createdPermissions, setCreatedPermissions] = useState<
     Array<{ id: string; name: string }>
   >([]);
@@ -63,6 +69,15 @@ export default function PermissionsPage() {
     enabled: Boolean(token) && isAdmin,
   });
 
+  const permissionsByRoleQuery = useQuery({
+    queryKey: ["permissions-by-role", selectedRoleId, user?.id ?? "guest"],
+    queryFn: async () => {
+      const response = await requestPermissionsByRole(selectedRoleId, token);
+      return response.permissionsByRole.data?.permissions ?? [];
+    },
+    enabled: Boolean(token) && isAdmin && Boolean(selectedRoleId),
+  });
+
   const availablePermissions = useMemo(() => {
     const collected = new Map<string, { id: string; name: string }>();
 
@@ -83,6 +98,35 @@ export default function PermissionsPage() {
       left.name.localeCompare(right.name),
     );
   }, [createdPermissions, permissionsQuery.data]);
+
+  const assignedPermissionIdsForSelectedRole = useMemo(() => {
+    if (!selectedRoleId) {
+      return [] as string[];
+    }
+
+    const serverAssigned = (permissionsByRoleQuery.data ?? []).map(
+      (permission) => permission.id,
+    );
+    const localAssigned = roleAssignedPermissionIds[selectedRoleId] ?? [];
+
+    return Array.from(new Set([...serverAssigned, ...localAssigned]));
+  }, [permissionsByRoleQuery.data, roleAssignedPermissionIds, selectedRoleId]);
+
+  const assignablePermissions = useMemo(() => {
+    if (!selectedRoleId) {
+      return availablePermissions;
+    }
+
+    const assigned = new Set(assignedPermissionIdsForSelectedRole);
+
+    return availablePermissions.filter(
+      (permission) => !assigned.has(permission.id),
+    );
+  }, [
+    availablePermissions,
+    assignedPermissionIdsForSelectedRole,
+    selectedRoleId,
+  ]);
 
   const createPermissionMutation = useMutation({
     mutationFn: async (name: string) => {
@@ -108,7 +152,7 @@ export default function PermissionsPage() {
 
         return [...current, { id: permission.id, name: permission.name }];
       });
-      setSelectedPermissionId(permission.id);
+      setSelectedPermissionIds([permission.id]);
       await queryClient.invalidateQueries({ queryKey: ["permissions-users"] });
       await queryClient.invalidateQueries({ queryKey: ["permissions-all"] });
       notify.success("Permission created", permission.name);
@@ -121,27 +165,53 @@ export default function PermissionsPage() {
   });
 
   const createRolePermissionMutation = useMutation({
-    mutationFn: async (request: { roleId: string; permissionId: string }) => {
+    mutationFn: async (request: {
+      roleId: string;
+      permissionIds: string[];
+    }) => {
       if (!token) {
         throw new Error("Please sign in first");
       }
 
       const response = await requestCreateRolePermission(request, token);
-      const rolePermission = response.createRolePermission.data?.rolePermission;
+      const rolePermissions =
+        response.createRolePermission.data?.rolePermissions ?? [];
 
-      if (!rolePermission) {
+      if (!rolePermissions.length) {
         throw new Error("Unable to assign permission");
       }
 
-      return rolePermission;
+      return rolePermissions;
     },
-    onSuccess: async (rolePermission) => {
-      setSelectedPermissionId("");
+    onSuccess: async (rolePermissions) => {
+      setSelectedPermissionIds([]);
+      setRoleAssignedPermissionIds((current) => {
+        const next: Record<string, string[]> = { ...current };
+
+        for (const item of rolePermissions) {
+          const currentIds = next[item.roleId] ?? [];
+          if (!currentIds.includes(item.permissionId)) {
+            next[item.roleId] = [...currentIds, item.permissionId];
+          }
+        }
+
+        return next;
+      });
       await queryClient.invalidateQueries({ queryKey: ["permissions-users"] });
       await queryClient.invalidateQueries({ queryKey: ["permissions-roles"] });
+      await queryClient.invalidateQueries({ queryKey: ["permissions-all"] });
+      await queryClient.invalidateQueries({
+        queryKey: ["permissions-by-role"],
+      });
+
+      const first = rolePermissions[0];
+      const total = rolePermissions.length;
+
       notify.success(
         "Permission assigned",
-        `${rolePermission.permission.name} -> ${rolePermission.role.name}`,
+        `${first.permission.name} -> ${first.role.name}${
+          total > 1 ? ` (+${total - 1})` : ""
+        }`,
       );
     },
     onError: (error: unknown) => {
@@ -202,14 +272,14 @@ export default function PermissionsPage() {
   const handleAssignRolePermission = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
 
-    if (!selectedRoleId || !selectedPermissionId) {
+    if (!selectedRoleId || selectedPermissionIds.length === 0) {
       notify.warning("Select values", "Choose a role and a permission.");
       return;
     }
 
     createRolePermissionMutation.mutate({
       roleId: selectedRoleId,
-      permissionId: selectedPermissionId,
+      permissionIds: selectedPermissionIds,
     });
   };
 
@@ -217,8 +287,23 @@ export default function PermissionsPage() {
     permissionName.trim().length > 0 && !createPermissionMutation.isPending;
   const canAssignPermission =
     Boolean(selectedRoleId) &&
-    Boolean(selectedPermissionId) &&
+    selectedPermissionIds.length > 0 &&
     !createRolePermissionMutation.isPending;
+
+  const handleTogglePermissionId = (permissionId: string) => {
+    setSelectedPermissionIds((current) => {
+      if (current.includes(permissionId)) {
+        return current.filter((id) => id !== permissionId);
+      }
+
+      return [...current, permissionId];
+    });
+  };
+
+  const handleRoleChange = (roleId: string) => {
+    setSelectedRoleId(roleId);
+    setSelectedPermissionIds([]);
+  };
 
   return (
     <div className="flex flex-col flex-1 pb-28">
@@ -272,17 +357,18 @@ export default function PermissionsPage() {
               <AssignRolePanel
                 roles={rolesQuery.data}
                 selectedRoleId={selectedRoleId}
-                setSelectedRoleId={setSelectedRoleId}
-                selectedPermissionId={selectedPermissionId}
-                setSelectedPermissionId={setSelectedPermissionId}
-                availablePermissions={availablePermissions}
+                setSelectedRoleId={handleRoleChange}
+                selectedPermissionIds={selectedPermissionIds}
+                onTogglePermissionId={handleTogglePermissionId}
+                availablePermissions={assignablePermissions}
                 onSubmit={handleAssignRolePermission}
                 canAssignPermission={canAssignPermission}
               />
 
               <UsersPermissionsPanel
+                roles={rolesQuery.data}
                 usersPermissions={allUsersPermissionsQuery.data}
-                isLoading={allUsersPermissionsQuery.isLoading}
+                isLoading={allUsersPermissionsQuery.isLoading || rolesQuery.isLoading}
               />
             </>
           )}

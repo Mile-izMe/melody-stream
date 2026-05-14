@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
-import { Plus } from "lucide-react";
+import { Plus, Users } from "lucide-react";
 
 interface RoleItem {
   id: string;
@@ -17,8 +17,8 @@ interface Props {
   roles?: RoleItem[];
   selectedRoleId: string;
   setSelectedRoleId: (v: string) => void;
-  selectedPermissionId: string;
-  setSelectedPermissionId: (v: string) => void;
+  selectedPermissionIds: string[];
+  onTogglePermissionId: (permissionId: string) => void;
   availablePermissions: PermissionItem[];
   onSubmit: (e: any) => void;
   canAssignPermission: boolean;
@@ -28,8 +28,8 @@ export default function AssignRolePanel({
   roles,
   selectedRoleId,
   setSelectedRoleId,
-  selectedPermissionId,
-  setSelectedPermissionId,
+  selectedPermissionIds,
+  onTogglePermissionId,
   availablePermissions,
   onSubmit,
   canAssignPermission,
@@ -37,7 +37,7 @@ export default function AssignRolePanel({
   return (
     <div className="rounded-3xl border border-ms-border-subtle bg-ms-bg-raised p-5 shadow-sm">
       <div className="mb-4 flex items-center gap-2 text-sm font-semibold text-ms-text-primary">
-        <svg className="h-4 w-4 text-ms-accent" />
+        <Users className="h-4 w-4 text-ms-accent" />
         Assign role permission
       </div>
       <form onSubmit={onSubmit} className="space-y-3">
@@ -54,18 +54,39 @@ export default function AssignRolePanel({
           ))}
         </select>
 
-        <select
-          value={selectedPermissionId}
-          onChange={(event) => setSelectedPermissionId(event.target.value)}
-          className="cursor-pointer w-full rounded-xl border border-ms-border-default bg-ms-bg-elevated px-4 py-3 text-sm outline-none focus:border-ms-accent"
-        >
-          <option value="">Select permission</option>
-          {availablePermissions.map((permission) => (
-            <option key={permission.id} value={permission.id}>
-              {permission.name}
-            </option>
-          ))}
-        </select>
+        <div className="rounded-xl border border-ms-border-default bg-ms-bg-elevated p-3">
+          <p className="mb-2 text-xs font-semibold uppercase tracking-[0.14em] text-ms-text-tertiary">
+            Select one or many permissions
+          </p>
+          <div className="max-h-56 space-y-2 overflow-auto pr-1">
+            {availablePermissions.length === 0 ? (
+              <p className="rounded-lg border border-dashed border-ms-border-subtle bg-ms-bg-raised px-3 py-2 text-xs text-ms-text-tertiary">
+                No assignable permissions left for this role.
+              </p>
+            ) : null}
+
+            {availablePermissions.map((permission) => {
+              const checked = selectedPermissionIds.includes(permission.id);
+
+              return (
+                <label
+                  key={permission.id}
+                  className="flex cursor-pointer items-center gap-3 rounded-lg border border-ms-border-subtle bg-ms-bg-raised px-3 py-2"
+                >
+                  <input
+                    type="checkbox"
+                    checked={checked}
+                    onChange={() => onTogglePermissionId(permission.id)}
+                    className="h-4 w-4 rounded border-ms-border-default"
+                  />
+                  <span className="text-sm text-ms-text-primary">
+                    {permission.name}
+                  </span>
+                </label>
+              );
+            })}
+          </div>
+        </div>
 
         <button
           type="submit"

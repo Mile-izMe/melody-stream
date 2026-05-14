@@ -9,6 +9,7 @@ import {
   Search,
   Play,
   Library,
+  Shield,
   MoonStar,
   SunMedium,
 } from "lucide-react";
@@ -16,6 +17,7 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import React from "react";
 import { useTheme } from "@/src/providers/theme-provider";
+import { hasRole } from "@/src/libs/auth-session";
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -101,6 +103,7 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
   const { user, logout } = useAuth();
   const pathname = usePathname();
   const isAuthed = Boolean(user);
+  const isAdmin = hasRole(user, "ADMIN");
   const { toggleTheme } = useTheme();
 
   return (
@@ -159,6 +162,14 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
               active={pathname === "/library"}
               isAuthed={isAuthed}
             />
+            {isAdmin && (
+              <NavLink
+                href="/permissions"
+                icon={Shield}
+                label="Permissions"
+                active={pathname === "/permissions"}
+              />
+            )}
           </nav>
 
           <div className="px-3 pb-4">
@@ -193,7 +204,7 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
                       {user.username}
                     </p>
                     <p className="text-[10px] text-ms-text-tertiary uppercase tracking-widest font-semibold">
-                      Creator
+                      {user.roles?.join("- ") || "User"}
                     </p>
                   </div>
                 </div>

@@ -9,6 +9,7 @@ import {
   decodeJwtPayload,
   deriveUsernameFromEmail,
   getOrCreateDeviceId,
+  normalizeAuthSession,
 } from "@/src/libs/auth-session";
 import { requestLogin } from "@/src/features/graphql/mutations/auth";
 import { notify } from "@/src/libs/toast";
@@ -51,14 +52,18 @@ export function LoginModal({
       }
 
       const decoded = decodeJwtPayload(session.accessToken);
-      login({
-        id: decoded?.sub ?? email,
-        username: deriveUsernameFromEmail(email),
-        email,
-        token: session.accessToken,
-        refreshToken: session.refreshToken,
-        deviceId,
-      });
+      login(
+        normalizeAuthSession({
+          id: decoded?.sub ?? email,
+          username: deriveUsernameFromEmail(email),
+          email,
+          token: session.accessToken,
+          refreshToken: session.refreshToken,
+          deviceId,
+          roles: decoded?.roles ?? [],
+          permissions: decoded?.permissions ?? [],
+        }),
+      );
 
       setEmail("");
       setPassword("");

@@ -6,6 +6,7 @@ import {
   getOrCreateDeviceId,
   getTokenExpiryTime,
   loadAuthSession,
+  normalizeAuthSession,
 } from "@/src/libs/auth-session";
 import { useAuthStore } from "@/src/stores/use-auth-store";
 import { User } from "@/src/types/user";
@@ -30,11 +31,11 @@ const AUTH_REFRESH_MARGIN_MS = 60_000;
 const AUTH_REFRESH_FALLBACK_DELAY_MS = 10 * 60 * 1000;
 
 function buildSession(session: User): User {
-  return {
+  return normalizeAuthSession({
     ...session,
     deviceId: session.deviceId ?? getOrCreateDeviceId(),
     refreshToken: session.refreshToken ?? "",
-  };
+  });
 }
 
 function getRefreshDelay(expiresAt: number | null) {
@@ -106,6 +107,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         token: payload.accessToken,
         refreshToken: payload.refreshToken,
         deviceId: currentUser.deviceId,
+        roles: decoded?.roles ?? currentUser.roles ?? [],
+        permissions: decoded?.permissions ?? currentUser.permissions ?? [],
       };
 
       useAuthStore

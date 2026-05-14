@@ -29,10 +29,14 @@ export function getOrCreateDeviceId() {
 }
 
 export function normalizeAuthSession(user: User): User {
+  const decoded = decodeJwtPayload(user.token);
+
   return {
     ...user,
     refreshToken: user.refreshToken ?? "",
     deviceId: user.deviceId ?? getOrCreateDeviceId(),
+    roles: user.roles ?? decoded?.roles ?? [],
+    permissions: user.permissions ?? decoded?.permissions ?? [],
   };
 }
 
@@ -48,11 +52,12 @@ export function loadAuthSession() {
 export function saveAuthSession(session: User) {
   // Save session to Zustand store
   const store = useAuthStore.getState();
+  const normalized = normalizeAuthSession(session);
   store.setAuthData(
-    session,
-    session.token,
-    session.refreshToken ?? "",
-    session.deviceId ?? getOrCreateDeviceId(),
+    normalized,
+    normalized.token,
+    normalized.refreshToken ?? "",
+    normalized.deviceId ?? getOrCreateDeviceId(),
   );
 }
 
@@ -96,4 +101,8 @@ export function getTokenExpiryTime(token: string) {
   }
 
   return payload.exp * 1000;
+}
+
+export function hasRole(user: User | null | undefined, role: string) {
+  return Boolean(user?.roles?.includes(role));
 }

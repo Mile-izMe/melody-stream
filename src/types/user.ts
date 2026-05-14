@@ -6,4 +6,6 @@ export interface User {
   refreshToken?: string;
   deviceId?: string;
   provider?: string;
+  roles?: string[];
+  permissions?: string[];
 }

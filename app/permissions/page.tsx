@@ -12,6 +12,7 @@ import {
   requestAllUsersPermissions,
   requestCreatePermission,
   requestCreateRolePermission,
+  requestPermissions,
 } from "@/src/features/graphql";
 import AllPermissionsPanel from "@/src/components/permissions/AllPermissionsPanel";
 import AssignRolePanel from "@/src/components/permissions/AssignRolePanel";
@@ -53,30 +54,23 @@ export default function PermissionsPage() {
     enabled: Boolean(token) && isAdmin,
   });
 
-  const uniquePermissions = useMemo(() => {
-    const collected = new Map<string, { id: string; name: string }>();
-
-    for (const userPermissions of allUsersPermissionsQuery.data ?? []) {
-      for (const permission of userPermissions.permissions) {
-        if (!collected.has(permission.id)) {
-          collected.set(permission.id, {
-            id: permission.id,
-            name: permission.name,
-          });
-        }
-      }
-    }
-
-    return Array.from(collected.values()).sort((left, right) =>
-      left.name.localeCompare(right.name),
-    );
-  }, [allUsersPermissionsQuery.data]);
+  const permissionsQuery = useQuery({
+    queryKey: ["permissions-all", user?.id ?? "guest"],
+    queryFn: async () => {
+      const response = await requestPermissions(token);
+      return response.permissions.data?.permissions ?? [];
+    },
+    enabled: Boolean(token) && isAdmin,
+  });
 
   const availablePermissions = useMemo(() => {
     const collected = new Map<string, { id: string; name: string }>();
 
-    for (const permission of uniquePermissions) {
-      collected.set(permission.id, permission);
+    for (const permission of permissionsQuery.data ?? []) {
+      collected.set(permission.id, {
+        id: permission.id,
+        name: permission.name,
+      });
     }
 
     for (const permission of createdPermissions) {
@@ -88,7 +82,7 @@ export default function PermissionsPage() {
     return Array.from(collected.values()).sort((left, right) =>
       left.name.localeCompare(right.name),
     );
-  }, [createdPermissions, uniquePermissions]);
+  }, [createdPermissions, permissionsQuery.data]);
 
   const createPermissionMutation = useMutation({
     mutationFn: async (name: string) => {
@@ -116,6 +110,7 @@ export default function PermissionsPage() {
       });
       setSelectedPermissionId(permission.id);
       await queryClient.invalidateQueries({ queryKey: ["permissions-users"] });
+      await queryClient.invalidateQueries({ queryKey: ["permissions-all"] });
       notify.success("Permission created", permission.name);
     },
     onError: (error: unknown) => {

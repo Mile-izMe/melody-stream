@@ -56,6 +56,21 @@ export const ALL_USERS_PERMISSIONS_QUERY = /* GraphQL */ `
   }
 `;
 
+export const PERMISSIONS_QUERY = /* GraphQL */ `
+  query Permissions {
+    permissions {
+      data {
+        permissions {
+          id
+          name
+          createdAt
+          updatedAt
+        }
+      }
+    }
+  }
+`;
+
 export interface RolesResponse {
   roles: {
     data: {
@@ -79,6 +94,22 @@ export async function requestRoles(token?: string) {
 export async function requestAllUsersPermissions(token?: string) {
   return requestGraphQL<AllUsersPermissionsResponse>(
     ALL_USERS_PERMISSIONS_QUERY,
+    undefined,
+    token,
+  );
+}
+
+export interface PermissionsResponse {
+  permissions: {
+    data: {
+      permissions: PermissionItem[];
+    } | null;
+  };
+}
+
+export async function requestPermissions(token?: string) {
+  return requestGraphQL<PermissionsResponse>(
+    PERMISSIONS_QUERY,
     undefined,
     token,
   );

@@ -2,18 +2,21 @@
 
 import { FormEvent, useMemo, useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { motion } from "framer-motion";
-import { Shield, KeyRound, Users, Plus, BadgeCheck } from "lucide-react";
+import { Shield, BadgeCheck, Plus } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/src/stores/use-auth-store";
 import { hasRole } from "@/src/libs/auth-session";
-import { Spinner } from "@/src/components/ui/spinner";
+
 import {
   requestRoles,
   requestAllUsersPermissions,
   requestCreatePermission,
   requestCreateRolePermission,
 } from "@/src/features/graphql";
+import AllPermissionsPanel from "@/src/components/permissions/AllPermissionsPanel";
+import AssignRolePanel from "@/src/components/permissions/AssignRolePanel";
+import UsersPermissionsPanel from "@/src/components/permissions/UsersPermissionsPanel";
+import CreatePermissionModal from "@/src/components/permissions/CreatePermissionModal";
 import { notify } from "@/src/libs/toast";
 
 export default function PermissionsPage() {
@@ -26,6 +29,8 @@ export default function PermissionsPage() {
   const [createdPermissions, setCreatedPermissions] = useState<
     Array<{ id: string; name: string }>
   >([]);
+  const [activeTab, setActiveTab] = useState<"all" | "users">("all");
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
 
   const isAdmin = hasRole(user, "ADMIN");
   const token = user?.token;
@@ -237,140 +242,69 @@ export default function PermissionsPage() {
         </div>
       </div>
 
-      <div className="px-8 grid gap-4 xl:grid-cols-3">
-        <motion.section
-          initial={{ opacity: 0, y: 8 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="rounded-3xl border border-ms-border-subtle bg-ms-bg-raised p-5 shadow-sm"
-        >
-          <div className="mb-4 flex items-center gap-2 text-sm font-semibold text-ms-text-primary">
-            <KeyRound size={16} className="text-ms-accent" />
-            Create permission
-          </div>
-          <form onSubmit={handleCreatePermission} className="space-y-3">
-            <input
-              type="text"
-              value={permissionName}
-              onChange={(event) => setPermissionName(event.target.value)}
-              placeholder="e.g. MANAGE_USERS"
-              className="w-full rounded-xl border border-ms-border-default bg-ms-bg-elevated px-4 py-3 text-sm outline-none placeholder:text-ms-text-tertiary focus:border-ms-accent"
+      <div className="px-8">
+        <div className="flex items-center gap-3">
+          <button
+            onClick={() => setActiveTab("all")}
+            className={`rounded-xl px-4 py-2 text-sm font-semibold ms-transition ${
+              activeTab === "all"
+                ? "bg-ms-accent text-ms-accent-text"
+                : "bg-ms-bg-elevated text-ms-text-primary"
+            }`}
+          >
+            All permissions
+          </button>
+          <button
+            onClick={() => setActiveTab("users")}
+            className={`rounded-xl px-4 py-2 text-sm font-semibold ms-transition ${
+              activeTab === "users"
+                ? "bg-ms-accent text-ms-accent-text"
+                : "bg-ms-bg-elevated text-ms-text-primary"
+            }`}
+          >
+            Users & roles
+          </button>
+        </div>
+
+        <div className="mt-6 grid gap-4 xl:grid-cols-3">
+          {activeTab === "all" ? (
+            <AllPermissionsPanel
+              availablePermissions={availablePermissions}
+              onOpenCreateModal={() => setIsCreateModalOpen(true)}
             />
-            <button
-              type="submit"
-              disabled={!canCreatePermission}
-              className="inline-flex items-center gap-2 rounded-xl bg-ms-accent px-4 py-3 text-sm font-semibold text-ms-accent-text hover:bg-ms-accent-hover disabled:opacity-50 ms-transition"
-            >
-              <Plus size={16} />
-              Create
-            </button>
-          </form>
-        </motion.section>
-
-        <motion.section
-          initial={{ opacity: 0, y: 8 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.05 }}
-          className="rounded-3xl border border-ms-border-subtle bg-ms-bg-raised p-5 shadow-sm"
-        >
-          <div className="mb-4 flex items-center gap-2 text-sm font-semibold text-ms-text-primary">
-            <Users size={16} className="text-ms-accent" />
-            Assign role permission
-          </div>
-          <form onSubmit={handleAssignRolePermission} className="space-y-3">
-            <select
-              value={selectedRoleId}
-              onChange={(event) => setSelectedRoleId(event.target.value)}
-              className="w-full rounded-xl border border-ms-border-default bg-ms-bg-elevated px-4 py-3 text-sm outline-none focus:border-ms-accent"
-            >
-              <option value="">Select role</option>
-              {rolesQuery.data?.map((role) => (
-                <option key={role.id} value={role.id}>
-                  {role.name}
-                </option>
-              ))}
-            </select>
-
-            <select
-              value={selectedPermissionId}
-              onChange={(event) => setSelectedPermissionId(event.target.value)}
-              className="w-full rounded-xl border border-ms-border-default bg-ms-bg-elevated px-4 py-3 text-sm outline-none focus:border-ms-accent"
-            >
-              <option value="">Select permission</option>
-              {availablePermissions.map((permission) => (
-                <option key={permission.id} value={permission.id}>
-                  {permission.name}
-                </option>
-              ))}
-            </select>
-
-            <button
-              type="submit"
-              disabled={!canAssignPermission}
-              className="inline-flex items-center gap-2 rounded-xl bg-ms-accent px-4 py-3 text-sm font-semibold text-ms-accent-text hover:bg-ms-accent-hover disabled:opacity-50 ms-transition"
-            >
-              <Plus size={16} />
-              Assign
-            </button>
-          </form>
-        </motion.section>
-
-        <motion.section
-          initial={{ opacity: 0, y: 8 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.1 }}
-          className="rounded-3xl border border-ms-border-subtle bg-ms-bg-raised p-5 shadow-sm"
-        >
-          <div className="mb-4 flex items-center gap-2 text-sm font-semibold text-ms-text-primary">
-            <Shield size={16} className="text-ms-accent" />
-            Current permissions
-          </div>
-          {allUsersPermissionsQuery.isLoading ? (
-            <div className="flex items-center gap-3 py-8 text-ms-text-secondary">
-              <Spinner className="size-4" />
-              Loading permissions...
-            </div>
           ) : (
-            <div className="space-y-3">
-              {allUsersPermissionsQuery.data?.map((userPermission) => (
-                <div
-                  key={userPermission.userId}
-                  className="rounded-2xl border border-ms-border-subtle bg-ms-bg-elevated p-4"
-                >
-                  <div className="flex items-start justify-between gap-3">
-                    <div>
-                      <p className="font-semibold text-ms-text-primary">
-                        {userPermission.username}
-                      </p>
-                      <p className="text-xs text-ms-text-tertiary">
-                        {userPermission.email}
-                      </p>
-                    </div>
-                    <span className="rounded-full border border-ms-border-subtle px-2 py-1 text-[10px] font-semibold uppercase tracking-[0.18em] text-ms-text-tertiary">
-                      {userPermission.permissions.length} permissions
-                    </span>
-                  </div>
-                  <div className="mt-3 flex flex-wrap gap-2">
-                    {userPermission.permissions.length > 0 ? (
-                      userPermission.permissions.map((permission) => (
-                        <span
-                          key={permission.id}
-                          className="rounded-full bg-ms-accent-subtle px-3 py-1 text-xs font-medium text-ms-accent"
-                        >
-                          {permission.name}
-                        </span>
-                      ))
-                    ) : (
-                      <span className="text-xs text-ms-text-tertiary">
-                        No permissions
-                      </span>
-                    )}
-                  </div>
-                </div>
-              ))}
-            </div>
+            <>
+              <AssignRolePanel
+                roles={rolesQuery.data}
+                selectedRoleId={selectedRoleId}
+                setSelectedRoleId={setSelectedRoleId}
+                selectedPermissionId={selectedPermissionId}
+                setSelectedPermissionId={setSelectedPermissionId}
+                availablePermissions={availablePermissions}
+                onSubmit={handleAssignRolePermission}
+                canAssignPermission={canAssignPermission}
+              />
+
+              <UsersPermissionsPanel
+                usersPermissions={allUsersPermissionsQuery.data}
+                isLoading={allUsersPermissionsQuery.isLoading}
+              />
+            </>
           )}
-        </motion.section>
+        </div>
       </div>
+
+      <CreatePermissionModal
+        isOpen={isCreateModalOpen}
+        onClose={() => setIsCreateModalOpen(false)}
+        permissionName={permissionName}
+        setPermissionName={(v) => setPermissionName(v)}
+        canCreatePermission={canCreatePermission}
+        onSubmit={(e) => {
+          handleCreatePermission(e);
+          setIsCreateModalOpen(false);
+        }}
+      />
     </div>
   );
 }

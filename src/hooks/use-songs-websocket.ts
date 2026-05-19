@@ -42,7 +42,8 @@ export function useSongsWebSocket() {
             predicate: (query) =>
               Array.isArray(query.queryKey) &&
               typeof query.queryKey[0] === "string" &&
-              query.queryKey[0].startsWith("songs"),
+              (query.queryKey[0].startsWith("songs") ||
+                query.queryKey[0].startsWith("global-search")),
           });
         });
       } catch (err) {

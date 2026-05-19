@@ -1,5 +1,4 @@
 "use client";
-
 import { Shield, Users, ChevronRight } from "lucide-react";
 import { Spinner } from "@/src/components/ui/spinner";
 import { RolePermissionsSummary } from "@/src/features/graphql";

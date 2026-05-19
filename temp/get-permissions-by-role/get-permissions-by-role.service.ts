@@ -17,11 +17,9 @@ export class GetPermissionsByRoleService {
         private readonly queryBus: QueryBus,
     ) {}
 
-    async execute(roleId: string): Promise<GetPermissionsByRoleResponseData> {
+    async execute(): Promise<GetPermissionsByRoleResponseData> {
         return this.queryBus.execute(
-            new GetPermissionsByRoleQuery({
-                roleId,
-            }),
+            new GetPermissionsByRoleQuery(),
         )
     }
 }

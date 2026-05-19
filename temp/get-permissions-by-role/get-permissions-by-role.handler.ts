@@ -18,6 +18,7 @@ import {
     GetPermissionsByRoleResponseData,
 } from "./types"
 import {
+    toRoleItem,
     toPermissionItem,
 } from "../../types"
 
@@ -33,23 +34,37 @@ export class GetPermissionsByRoleHandler
     }
 
     protected override async process(
-        query: GetPermissionsByRoleQuery,
     ): Promise<GetPermissionsByRoleResponseData> {
-        const permissions = await this.prisma.permission.findMany({
-            where: {
-                rolePermissions: {
-                    some: {
-                        roleId: query.params.roleId,
-                    },
-                },
-            },
+        const roles = await this.prisma.role.findMany({
             orderBy: {
                 name: "asc",
+            },
+            include: {
+                users: true,
+                permissions: {
+                    include: {
+                        permission: true,
+                    },
+                    orderBy: {
+                        permission: {
+                            name: "asc",
+                        },
+                    },
+                },
             },
         })
 
         return {
-            permissions: permissions.map(toPermissionItem),
+            roles: roles.map((role) => {
+                const permissions = role.permissions.map((item) => toPermissionItem(item.permission))
+
+                return {
+                    role: toRoleItem(role),
+                    permissions,
+                    permissionCount: permissions.length,
+                    userCount: role.users.length,
+                }
+            }),
         }
     }
 }

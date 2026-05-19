@@ -70,12 +70,12 @@ export default function PermissionsPage() {
   });
 
   const permissionsByRoleQuery = useQuery({
-    queryKey: ["permissions-by-role", selectedRoleId, user?.id ?? "guest"],
+    queryKey: ["permissions-by-role", user?.id ?? "guest"],
     queryFn: async () => {
-      const response = await requestPermissionsByRole(selectedRoleId, token);
-      return response.permissionsByRole.data?.permissions ?? [];
+      const response = await requestPermissionsByRole(token);
+      return response.permissionsByRole.data?.roles ?? [];
     },
-    enabled: Boolean(token) && isAdmin && Boolean(selectedRoleId),
+    enabled: Boolean(token) && isAdmin,
   });
 
   const availablePermissions = useMemo(() => {
@@ -104,7 +104,10 @@ export default function PermissionsPage() {
       return [] as string[];
     }
 
-    const serverAssigned = (permissionsByRoleQuery.data ?? []).map(
+    const selectedRoleSummary = (permissionsByRoleQuery.data ?? []).find(
+      (summary) => summary.role.id === selectedRoleId,
+    );
+    const serverAssigned = (selectedRoleSummary?.permissions ?? []).map(
       (permission) => permission.id,
     );
     const localAssigned = roleAssignedPermissionIds[selectedRoleId] ?? [];
@@ -366,9 +369,11 @@ export default function PermissionsPage() {
               />
 
               <UsersPermissionsPanel
-                roles={rolesQuery.data}
-                usersPermissions={allUsersPermissionsQuery.data}
-                isLoading={allUsersPermissionsQuery.isLoading || rolesQuery.isLoading}
+                roleSummaries={permissionsByRoleQuery.data}
+                isLoading={
+                  allUsersPermissionsQuery.isLoading ||
+                  permissionsByRoleQuery.isLoading
+                }
               />
             </>
           )}
